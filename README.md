@@ -27,7 +27,7 @@ Download a release zip (or zip the `admaps` folder) and upload it via **Plugins 
    - **Add radius**: click to place the centre, then set the radius in the side panel.
    - **Draw area**: click to add corners; click the first corner to finish. Drag handles to reshape, right-click a corner to remove it.
    - **Search** an address, postcode or ZIP, then use **+ Pin** or **+ Radius** on a result.
-3. Select an item in the list to edit its label, colours, info bubble, legend visibility and (under **Bubble size**) bubble width. Pins can also add a **Get directions** link to their bubble.
+3. Select an item in the list to edit its label, colours, info bubble, legend visibility and (under **Bubble size**) bubble width. Pins can also add a **Get directions** link to their bubble. Use **← All items** to return to the list. Items without a label are listed by an editor-only name ("Pin 3", or the place name when added from search), which is never shown to visitors.
 4. Set height, map style, zoom behaviour, clustering and legend in the **Map settings** box. Use **Set start view** if *Fit to contents* is off.
 5. Publish, then copy the shortcode from the **Shortcode** box (or the Maps list).
 

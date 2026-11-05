@@ -225,6 +225,7 @@ class Map_Data {
 			'id'     => self::sanitize_id( $raw['id'] ?? '' ),
 			'lat'    => $pos[0],
 			'lng'    => $pos[1],
+			'name'   => self::sanitize_name( $raw['name'] ?? '' ),
 			'label'  => sanitize_text_field( (string) ( $raw['label'] ?? '' ) ),
 			'popup'  => wp_kses_post( (string) ( $raw['popup'] ?? '' ) ),
 			'legend'     => self::to_bool( $raw['legend'] ?? false ),
@@ -314,6 +315,7 @@ class Map_Data {
 		$fill   = sanitize_hex_color( (string) ( $raw['fill'] ?? '' ) );
 
 		return self::sanitize_popup_size( $raw ) + array(
+			'name'           => self::sanitize_name( $raw['name'] ?? '' ),
 			'label'          => sanitize_text_field( (string) ( $raw['label'] ?? '' ) ),
 			'popup'          => wp_kses_post( (string) ( $raw['popup'] ?? '' ) ),
 			'legend'         => self::to_bool( $raw['legend'] ?? true ),
@@ -323,6 +325,17 @@ class Map_Data {
 			'fill'           => $fill ? $fill : '#457b9d',
 			'fill_opacity'   => self::clamp_float( $raw['fill_opacity'] ?? 0.25, 0, 1, 0.25 ),
 		);
+	}
+
+	/**
+	 * Editor-only item name, used in the admin list when there is no label.
+	 *
+	 * @param mixed $name Raw name.
+	 * @return string
+	 */
+	private static function sanitize_name( $name ): string {
+		$name = sanitize_text_field( (string) $name );
+		return function_exists( 'mb_substr' ) ? mb_substr( $name, 0, 100 ) : substr( $name, 0, 100 );
 	}
 
 	/**
@@ -357,12 +370,13 @@ class Map_Data {
 
 		foreach ( $data['markers'] as &$marker ) {
 			$marker['popup'] = $popup( $marker['popup'] );
-			unset( $marker['icon']['attachment_id'] );
+			unset( $marker['icon']['attachment_id'], $marker['name'] );
 		}
 		unset( $marker );
 		foreach ( array( 'circles', 'polygons' ) as $type ) {
 			foreach ( $data[ $type ] as &$shape ) {
 				$shape['popup'] = $popup( $shape['popup'] );
+				unset( $shape['name'] );
 			}
 			unset( $shape );
 		}

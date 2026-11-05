@@ -79,6 +79,7 @@
 	var $data = $( '#admaps-data' );
 	var $list = $( '#admaps-items' );
 	var $form = $( '#admaps-item-form' );
+	var $panel = $( '.admaps-panel' );
 	var $notice = $( '#admaps-notice' );
 
 	/* ---------- utilities ---------- */
@@ -159,6 +160,7 @@
 			} );
 		}
 		delete overrides.keepImportedStyle;
+		base.name = nextName( type );
 		var item = $.extend( true, base, overrides );
 		item.id = uid();
 		return item;
@@ -351,6 +353,20 @@
 		markSelectedMarker();
 		renderList();
 		renderForm();
+		$panel.scrollTop( 0 );
+	}
+
+	/**
+	 * Back to the list, keeping the item that was being edited in view.
+	 */
+	function backToList() {
+		var id = selected && selected.id;
+		select( null );
+		var btn = id && $list.find( '[data-id="' + id + '"]' )[ 0 ];
+		if ( btn ) {
+			btn.scrollIntoView( { block: 'nearest' } );
+			btn.focus( { preventScroll: true } );
+		}
 	}
 
 	function swatchHtml( type, item ) {
@@ -364,18 +380,47 @@
 			'" style="background:' + esc( item.fill ) + ';border-color:' + esc( item.stroke ) + '"></span>';
 	}
 
+	/**
+	 * Name shown in the editor: the public label, else the editor-only name, else "Pin 2" by position.
+	 */
+	function displayName( type, item ) {
+		if ( item.label ) {
+			return item.label;
+		}
+		if ( item.name ) {
+			return item.name;
+		}
+		return TYPE_LABEL[ type ] + ' ' + ( state[ type ].indexOf( item ) + 1 );
+	}
+
+	function nextName( type ) {
+		var taken = {};
+		state[ type ].forEach( function ( item ) {
+			taken[ displayName( type, item ) ] = true;
+		} );
+		var n = state[ type ].length + 1;
+		while ( taken[ TYPE_LABEL[ type ] + ' ' + n ] ) {
+			n++;
+		}
+		return TYPE_LABEL[ type ] + ' ' + n;
+	}
+
+	function itemCount() {
+		return state.markers.length + state.circles.length + state.polygons.length;
+	}
+
 	function renderList() {
 		var html = '';
 		[ 'markers', 'circles', 'polygons' ].forEach( function ( type ) {
 			state[ type ].forEach( function ( item ) {
-				var active = selected && selected.id === item.id;
-				html += '<li><button type="button" class="admaps-item' + ( active ? ' is-selected' : '' ) + '" data-type="' + type + '" data-id="' + esc( item.id ) + '" aria-pressed="' + ( active ? 'true' : 'false' ) + '">' +
+				html += '<li><button type="button" class="admaps-item" data-type="' + type + '" data-id="' + esc( item.id ) + '">' +
 					swatchHtml( type, item ) +
 					'<span class="admaps-item__type">' + esc( TYPE_LABEL[ type ] ) + '</span>' +
-					'<span class="admaps-item__label">' + esc( item.label || i18n.untitled ) + '</span></button></li>';
+					'<span class="admaps-item__label">' + esc( displayName( type, item ) ) + '</span></button></li>';
 			} );
 		} );
 		$list.html( html || '<li class="admaps-items__empty">' + esc( i18n.noItems ) + '</li>' );
+		$list.prop( 'hidden', !! selected );
 	}
 
 	function field( label, input, extraClass ) {
@@ -404,9 +449,10 @@
 			return;
 		}
 		var type = selected.type;
-		var html = '<h3 class="admaps-item-form__title">' + esc( TYPE_LABEL[ type ] ) + '</h3>';
+		var html = '<button type="button" class="admaps-back"><span aria-hidden="true">&larr;</span> ' + esc( sprintf( i18n.allItems, itemCount() ) ) + '</button>';
+		html += '<h3 class="admaps-item-form__title">' + swatchHtml( type, item ) + '<span class="admaps-item-form__name">' + esc( displayName( type, item ) ) + '</span></h3>';
 
-		html += field( 'Label', '<input type="text" class="widefat" data-field="label" value="' + esc( item.label ) + '">' );
+		html += field( 'Label', '<input type="text" class="widefat" data-field="label" value="' + esc( item.label ) + '" placeholder="' + esc( i18n.labelPlaceholder ) + '">' );
 		html += '<p class="admaps-field admaps-field--check"><label><input type="checkbox" data-field="legend"' + ( item.legend ? ' checked' : '' ) + '> Show in legend</label></p>';
 
 		if ( type === 'markers' ) {
@@ -615,8 +661,8 @@
 
 		updateLayer( type, item );
 		if ( name === 'label' || name.indexOf( 'color' ) !== -1 || name === 'fill' || name === 'stroke' || name === 'icon.type' ) {
-			var $btn = $list.find( '[data-id="' + item.id + '"]' );
-			$btn.find( '.admaps-item__label' ).text( item.label || i18n.untitled );
+			var $btn = $list.find( '[data-id="' + item.id + '"]' ).add( $form.find( '.admaps-item-form__title' ) );
+			$btn.find( '.admaps-item__label, .admaps-item-form__name' ).text( displayName( type, item ) );
 			$btn.find( '.admaps-item__swatch' ).replaceWith( swatchHtml( type, item ) );
 		}
 		if ( state.settings.legend ) {
@@ -672,9 +718,7 @@
 		sync();
 	} );
 
-	$form.on( 'click', '.admaps-deselect', function () {
-		select( null );
-	} );
+	$form.on( 'click', '.admaps-deselect, .admaps-back', backToList );
 
 	$form.on( 'click', '.admaps-zoom-to', function () {
 		var item = current();
@@ -900,7 +944,8 @@
 		var row = searchResults[ this.getAttribute( 'data-index' ) ];
 		var type = this.getAttribute( 'data-add' );
 		$results.prop( 'hidden', true );
-		addItem( type, newItem( type, { lat: round( +row.lat ), lng: round( +row.lon ) } ) );
+		var place = String( row.display_name || '' ).split( ',' ).slice( 0, 2 ).join( ',' ).trim();
+		addItem( type, newItem( type, { lat: round( +row.lat ), lng: round( +row.lon ), name: place || undefined } ) );
 		var item = state[ type ][ state[ type ].length - 1 ];
 		map.fitBounds( R.itemBounds( type, item ), { padding: [ 40, 40 ], maxZoom: 14 } );
 	} );
