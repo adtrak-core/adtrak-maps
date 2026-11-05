@@ -13,6 +13,7 @@
 		$tabs.removeClass( 'nav-tab-active' ).removeAttr( 'aria-current' )
 			.filter( '[data-admaps-tab="' + slug + '"]' ).addClass( 'nav-tab-active' ).attr( 'aria-current', 'page' );
 		$panels.prop( 'hidden', true ).filter( '[data-admaps-panel="' + slug + '"]' ).prop( 'hidden', false );
+		$( '.admaps-settings-submit' ).prop( 'hidden', 'import-export' === slug );
 		// Return to the same tab after saving.
 		$referer.val( baseReferer + '#' + slug );
 	}

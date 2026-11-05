@@ -58,6 +58,7 @@ Draft maps are shown only to people who can edit them. A missing map renders not
 | New item defaults | Starting colours, opacities, line width and radius for new items. After the first item, new items copy the previous item of the same type. |
 | Custom tiles | A keyed tile provider (MapTiler, Stadia, Mapbox…), which then appears as a map style. |
 | Advanced | Delete all maps and settings when the plugin is deleted (off by default). |
+| Import / Export | Export all maps as JSON, or import maps from another site. |
 
 Each map has an **Appearance** box (below the editor, collapsed by default) to override any of these for that map. Blank fields use the site default. Each pin and shape can also override its bubble width under **Bubble size**. Bubbles always shrink to fit small maps.
 
@@ -83,7 +84,7 @@ Values set in the admin are applied inline, so target `.admaps-map` with higher 
 
 ## Import and export
 
-- **Between sites:** **Maps → Import / Export** exports selected or all maps as JSON (also available as a row action and bulk action in the Maps list). Importing can optionally copy custom pin images into the media library.
+- **Between sites:** **Maps → Settings → Import / Export** exports selected or all maps as JSON (also available as a row action and bulk action in the Maps list). Importing can optionally copy custom pin images into the media library.
 - **KML / GeoJSON:** in the map editor, **Import KML / GeoJSON** adds features from a file (Google My Maps, Google Earth, Scribble Maps paid plans). Pins, polygons and their colours are imported; many-sided circles are converted back to editable radii; HTML descriptions are sanitised. Lines are skipped. KMZ files need unzipping first.
 
 Scribble Maps' free plan can't export, so most migrations are quickest rebuilt by hand with the address search.
@@ -96,7 +97,7 @@ OpenStreetMap's tile servers are for light use, and CARTO's free basemaps are fo
 
 ## Permissions
 
-Maps use page capabilities, so Editors and Administrators can manage them (change with the `admaps_capability_type` filter). Settings and Import / Export require `manage_options`.
+Maps use page capabilities, so Editors and Administrators can manage them (change with the `admaps_capability_type` filter). Settings (including the Import / Export tab) require `manage_options`. Editors can still export single maps from the Maps list.
 
 ## Developer reference
 

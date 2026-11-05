@@ -235,11 +235,12 @@ class Settings {
 		$providers = Assets::tile_providers();
 		$items     = $s['item_defaults'];
 		$tabs      = array(
-			'general'    => __( 'General', 'admaps' ),
-			'appearance' => __( 'Appearance', 'admaps' ),
-			'items'      => __( 'New item defaults', 'admaps' ),
-			'tiles'      => __( 'Custom tiles', 'admaps' ),
-			'advanced'   => __( 'Advanced', 'admaps' ),
+			'general'       => __( 'General', 'admaps' ),
+			'appearance'    => __( 'Appearance', 'admaps' ),
+			'items'         => __( 'New item defaults', 'admaps' ),
+			'tiles'         => __( 'Custom tiles', 'admaps' ),
+			'advanced'      => __( 'Advanced', 'admaps' ),
+			'import-export' => __( 'Import / Export', 'admaps' ),
 		);
 		?>
 		<div class="wrap admaps-settings">
@@ -376,8 +377,10 @@ class Settings {
 					</table>
 				</section>
 
-				<?php submit_button(); ?>
+				<div class="admaps-settings-submit"><?php submit_button(); ?></div>
 			</form>
+
+			<?php Import_Export::render_panel(); ?>
 		</div>
 		<?php
 	}

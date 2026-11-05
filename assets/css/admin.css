@@ -50,6 +50,12 @@
 	height: 16px;
 }
 
+.admaps-toolbar .button .admaps-icon {
+	width: 16px;
+	height: 16px;
+	vertical-align: -3px;
+}
+
 .admaps-toolbar .button.is-active {
 	background: #2271b1;
 	border-color: #2271b1;

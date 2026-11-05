@@ -10,7 +10,7 @@ namespace Admaps;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Maps > Import / Export, plus the "Export" row and bulk actions.
+ * The Import / Export tab in Maps > Settings, plus the "Export" row and bulk actions.
  */
 class Import_Export {
 
@@ -21,25 +21,10 @@ class Import_Export {
 	 * Hook up.
 	 */
 	public static function init(): void {
-		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 15 );
 		add_action( 'admin_post_admaps_export', array( __CLASS__, 'handle_export' ) );
 		add_action( 'admin_post_admaps_import', array( __CLASS__, 'handle_import' ) );
 		add_filter( 'bulk_actions-edit-' . Post_Type::NAME, array( __CLASS__, 'bulk_actions' ) );
 		add_filter( 'handle_bulk_actions-edit-' . Post_Type::NAME, array( __CLASS__, 'handle_bulk' ), 10, 3 );
-	}
-
-	/**
-	 * Add the submenu page.
-	 */
-	public static function menu(): void {
-		add_submenu_page(
-			'edit.php?post_type=' . Post_Type::NAME,
-			__( 'Import / Export Maps', 'admaps' ),
-			__( 'Import / Export', 'admaps' ),
-			'edit_pages',
-			'admaps-import-export',
-			array( __CLASS__, 'render' )
-		);
 	}
 
 	/**
@@ -144,11 +129,11 @@ class Import_Export {
 	 */
 	public static function handle_import(): void {
 		check_admin_referer( 'admaps_import' );
-		if ( ! current_user_can( 'edit_pages' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You cannot import maps.', 'admaps' ), 403 );
 		}
 
-		$back = admin_url( 'edit.php?post_type=' . Post_Type::NAME . '&page=admaps-import-export' );
+		$back = admin_url( 'edit.php?post_type=' . Post_Type::NAME . '&page=admaps-settings#import-export' );
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- file array, validated below.
 		$file = isset( $_FILES['admaps_file'] ) ? $_FILES['admaps_file'] : null;
@@ -247,18 +232,16 @@ class Import_Export {
 	}
 
 	/**
-	 * Render the page.
+	 * Render the Import / Export tab. Must be outside the settings form, as it has its own forms.
 	 */
-	public static function render(): void {
+	public static function render_panel(): void {
 		$notice = get_transient( 'admaps_notice_' . get_current_user_id() );
 		if ( $notice ) {
 			delete_transient( 'admaps_notice_' . get_current_user_id() );
 		}
 		$export_url = wp_nonce_url( admin_url( 'admin-post.php?action=admaps_export&ids=all' ), 'admaps_export' );
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Import / Export Maps', 'admaps' ); ?></h1>
-
+		<section class="admaps-tab-panel" data-admaps-panel="import-export">
 			<?php if ( is_array( $notice ) ) : ?>
 				<div class="notice notice-<?php echo 'success' === $notice[0] ? 'success' : 'error'; ?> is-dismissible"><p><?php echo esc_html( $notice[1] ); ?></p></div>
 			<?php endif; ?>
@@ -286,7 +269,7 @@ class Import_Export {
 				<p><?php esc_html_e( 'Most maps are quickest to rebuild: use the address search above the map editor, then "+ Pin" or "+ Radius" on a result.', 'admaps' ); ?></p>
 				<p><?php esc_html_e( 'If you have a KML or GeoJSON file (Scribble Maps paid plans, Google My Maps, Google Earth), create a map and use "Import KML / GeoJSON" above the editor instead. Pins, areas and their colours are brought across, and circles are turned back into editable radii.', 'admaps' ); ?></p>
 			</div>
-		</div>
+		</section>
 		<?php
 	}
 }

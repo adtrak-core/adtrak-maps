@@ -173,7 +173,7 @@ class Admin_Editor {
 				<div class="admaps-toolbar__group">
 					<button type="button" class="button" data-admaps-draw="marker"><span class="dashicons dashicons-location" aria-hidden="true"></span> <?php esc_html_e( 'Add pin', 'admaps' ); ?></button>
 					<button type="button" class="button" data-admaps-draw="circle"><span class="dashicons dashicons-marker" aria-hidden="true"></span> <?php esc_html_e( 'Add radius', 'admaps' ); ?></button>
-					<button type="button" class="button" data-admaps-draw="polygon"><span class="dashicons dashicons-admin-site-alt3" aria-hidden="true"></span> <?php esc_html_e( 'Draw area', 'admaps' ); ?></button>
+					<button type="button" class="button" data-admaps-draw="polygon"><svg class="admaps-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 7.5 10.5 3 17 7 15 16 5 15.5Z" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><g fill="currentColor"><circle cx="4" cy="7.5" r="1.8"/><circle cx="10.5" cy="3" r="1.8"/><circle cx="17" cy="7" r="1.8"/><circle cx="15" cy="16" r="1.8"/><circle cx="5" cy="15.5" r="1.8"/></g></svg> <?php esc_html_e( 'Draw area', 'admaps' ); ?></button>
 				</div>
 				<div class="admaps-toolbar__group admaps-search">
 					<label class="screen-reader-text" for="admaps-search-input"><?php esc_html_e( 'Search for an address, postcode or ZIP code', 'admaps' ); ?></label>
