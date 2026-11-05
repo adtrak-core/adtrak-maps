@@ -1,0 +1,142 @@
+.admaps-map {
+	position: relative;
+	width: 100%;
+	min-height: 200px;
+	background: #e5e3df;
+	z-index: 0;
+}
+
+.admaps-map img {
+	max-width: none;
+}
+
+.admaps-pin {
+	background: none;
+	border: 0;
+}
+
+.admaps-pin svg {
+	display: block;
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+/* Appearance is driven by custom properties set on .admaps-map from Settings or
+   the map's Appearance box. Themes can override them in their own stylesheet. */
+.admaps-map--theme-font.leaflet-container {
+	font-family: inherit;
+}
+
+.admaps-map .leaflet-popup-content-wrapper,
+.admaps-map .leaflet-popup-tip {
+	background: var(--admaps-popup-bg, #fff);
+	color: var(--admaps-popup-text, #333);
+}
+
+.admaps-map .leaflet-popup-content-wrapper {
+	border-radius: var(--admaps-popup-radius, 12px);
+}
+
+.admaps-map .leaflet-popup-content {
+	margin: var(--admaps-popup-padding, 14px) calc(var(--admaps-popup-padding, 14px) + 6px) var(--admaps-popup-padding, 14px) var(--admaps-popup-padding, 14px);
+	font-size: var(--admaps-popup-size, 14px);
+	line-height: 1.45;
+}
+
+.admaps-map a.leaflet-popup-close-button {
+	color: var(--admaps-popup-text, #757575);
+	opacity: 0.7;
+}
+
+.admaps-map a.leaflet-popup-close-button:hover,
+.admaps-map a.leaflet-popup-close-button:focus {
+	color: var(--admaps-popup-text, #585858);
+	opacity: 1;
+}
+
+.admaps-map .leaflet-popup-content a {
+	color: var(--admaps-popup-link, #0078a8);
+}
+
+/* Leaflet sizes popups by measuring content with white-space: nowrap; themes that set
+   text-wrap (e.g. "pretty" on paragraphs) override that and collapse the bubble. */
+.admaps-map .leaflet-popup-content * {
+	text-wrap: inherit;
+}
+
+.admaps-map .leaflet-popup-content > :first-child {
+	margin-top: 0;
+}
+
+.admaps-map .leaflet-popup-content > :last-child {
+	margin-bottom: 0;
+}
+
+.admaps-map .leaflet-popup-content img {
+	max-width: 100%;
+	height: auto;
+}
+
+.admaps-legend {
+	max-width: 240px;
+	max-height: 50%;
+	overflow: auto;
+	padding: 8px 10px;
+	background: var(--admaps-legend-bg, #fff);
+	border-radius: 4px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+	font-size: var(--admaps-legend-size, 13px);
+	line-height: 1.3;
+	color: var(--admaps-legend-text, #222);
+}
+
+.admaps-legend__title {
+	margin: 0 0 6px;
+	font-weight: 600;
+}
+
+.admaps-legend ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.admaps-legend li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 2px 0;
+}
+
+.admaps-legend__swatch {
+	flex: 0 0 auto;
+	width: 16px;
+	height: 12px;
+	border: 2px solid;
+	border-radius: 2px;
+	box-sizing: border-box;
+}
+
+.admaps-legend__swatch--circle {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+}
+
+.admaps-legend__icon {
+	flex: 0 0 auto;
+	display: inline-flex;
+	width: 16px;
+	justify-content: center;
+}
+
+img.admaps-legend__icon {
+	height: 16px;
+	object-fit: contain;
+}
+
+.admaps-error {
+	padding: 8px 12px;
+	border-left: 4px solid #d63638;
+	background: #fcf0f1;
+}

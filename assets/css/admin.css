@@ -1,0 +1,404 @@
+/* Shortcode field (list + edit screens) */
+.admaps-shortcode {
+	display: inline-flex;
+	gap: 4px;
+	align-items: center;
+	max-width: 100%;
+}
+
+.admaps-shortcode input {
+	width: 150px;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+}
+
+#admaps-shortcode .admaps-shortcode input {
+	flex: 1;
+	width: auto;
+}
+
+.column-admaps_shortcode {
+	width: 230px;
+}
+
+/* Editor */
+#admaps-editor .inside {
+	margin: 0;
+	padding: 0;
+}
+
+.admaps-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	align-items: center;
+	padding: 10px 12px;
+	border-bottom: 1px solid #dcdcde;
+	background: #f6f7f7;
+}
+
+.admaps-toolbar__group {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.admaps-toolbar .button .dashicons {
+	margin-top: 3px;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+.admaps-toolbar .button.is-active {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+}
+
+.admaps-search {
+	position: relative;
+	flex: 1 1 260px;
+}
+
+.admaps-search input[type="search"] {
+	flex: 1;
+	min-width: 0;
+}
+
+.admaps-search__results {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 1001;
+	margin: 4px 0 0;
+	max-height: 320px;
+	overflow: auto;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.admaps-search__results li {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	margin: 0;
+	padding: 6px 8px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.admaps-search__go {
+	flex: 1;
+	padding: 0;
+	border: 0;
+	background: none;
+	text-align: left;
+	cursor: pointer;
+	color: #2271b1;
+}
+
+.admaps-search__go:hover,
+.admaps-search__go:focus {
+	text-decoration: underline;
+}
+
+.admaps-search__add {
+	display: flex;
+	gap: 4px;
+	flex: 0 0 auto;
+}
+
+.admaps-search__status {
+	color: #646970;
+}
+
+.admaps-notice {
+	margin: 0;
+	padding: 8px 12px;
+	border-left: 4px solid #72aee6;
+	background: #f0f6fc;
+}
+
+.admaps-notice--success {
+	border-left-color: #00a32a;
+	background: #edfaef;
+}
+
+.admaps-notice--error {
+	border-left-color: #d63638;
+	background: #fcf0f1;
+}
+
+.admaps-editor__body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 340px;
+	min-height: 600px;
+}
+
+.admaps-editor__map {
+	min-height: 600px;
+	z-index: 0;
+}
+
+.admaps-panel {
+	display: flex;
+	flex-direction: column;
+	max-height: 75vh;
+	min-height: 600px;
+	overflow: auto;
+	border-left: 1px solid #dcdcde;
+}
+
+@media (max-width: 1100px) {
+	.admaps-editor__body {
+		grid-template-columns: 1fr;
+	}
+
+	.admaps-editor__map {
+		min-height: 450px;
+	}
+
+	.admaps-panel {
+		min-height: 0;
+		max-height: none;
+		border-left: 0;
+		border-top: 1px solid #dcdcde;
+	}
+}
+
+.admaps-items {
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px solid #dcdcde;
+	max-height: 260px;
+	overflow: auto;
+	flex: 0 0 auto;
+}
+
+.admaps-items li {
+	margin: 0;
+}
+
+.admaps-items__empty {
+	padding: 12px;
+	color: #646970;
+}
+
+.admaps-item {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	width: 100%;
+	padding: 8px 12px;
+	border: 0;
+	border-bottom: 1px solid #f0f0f1;
+	background: #fff;
+	text-align: left;
+	cursor: pointer;
+}
+
+.admaps-item:hover,
+.admaps-item:focus {
+	background: #f6f7f7;
+}
+
+.admaps-item.is-selected {
+	background: #f0f6fc;
+	box-shadow: inset 3px 0 0 #2271b1;
+}
+
+.admaps-item__swatch {
+	flex: 0 0 auto;
+	width: 14px;
+	height: 14px;
+	border: 2px solid transparent;
+	border-radius: 2px;
+	box-sizing: border-box;
+}
+
+.admaps-item__swatch--circle,
+.admaps-item__swatch--pin {
+	border-radius: 50%;
+}
+
+.admaps-item__swatch--img {
+	border: 0;
+	object-fit: contain;
+}
+
+.admaps-item__type {
+	flex: 0 0 52px;
+	color: #646970;
+	font-size: 12px;
+}
+
+.admaps-item__label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.admaps-item-form {
+	padding: 0 12px 12px;
+}
+
+.admaps-item-form:empty {
+	display: none;
+}
+
+.admaps-item-form__title {
+	margin: 12px 0 8px;
+}
+
+.admaps-field {
+	margin: 0 0 10px;
+}
+
+.admaps-field > label,
+.admaps-field > legend {
+	display: block;
+	margin-bottom: 3px;
+	font-weight: 600;
+}
+
+.admaps-field--check label {
+	font-weight: 400;
+}
+
+fieldset.admaps-field label {
+	margin-right: 10px;
+}
+
+.admaps-field input[type="number"],
+.admaps-field select {
+	width: 100%;
+}
+
+.admaps-field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.admaps-range {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.admaps-range input {
+	flex: 1;
+	min-width: 0;
+}
+
+.admaps-range output {
+	flex: 0 0 36px;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.admaps-image {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.admaps-image img {
+	max-width: 48px;
+	max-height: 48px;
+}
+
+.admaps-warning {
+	color: #996800;
+}
+
+.admaps-item-form .wp-picker-container .wp-color-result.button {
+	margin: 0;
+}
+
+.admaps-item-form .wp-picker-holder {
+	position: absolute;
+	z-index: 1002;
+}
+
+.admaps-item-form .wp-editor-wrap {
+	margin-top: 4px;
+}
+
+.admaps-item-form__actions {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	margin: 14px 0 0;
+}
+
+.admaps-item-form__actions .admaps-delete {
+	margin-left: auto;
+}
+
+/* Map overlays in the editor */
+.admaps-editor__map .admaps-selected svg,
+.admaps-editor__map img.admaps-selected {
+	filter: drop-shadow(0 0 3px #2271b1) drop-shadow(0 0 2px #2271b1);
+}
+
+.admaps-crosshair span {
+	position: absolute;
+	inset: 0;
+	border: 2px solid #1d3557;
+	border-radius: 50%;
+	background: rgba(69, 123, 157, 0.3);
+}
+
+.admaps-crosshair {
+	background: none;
+	border: 0;
+}
+
+.admaps-advanced {
+	margin: 0 0 12px;
+	padding: 6px 10px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #f6f7f7;
+}
+
+.admaps-advanced summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.admaps-advanced[open] summary {
+	margin-bottom: 8px;
+}
+
+.admaps-advanced .admaps-field input {
+	width: 100%;
+}
+
+.admaps-appearance__group th {
+	padding: 16px 0 0;
+}
+
+.admaps-appearance__group h3 {
+	margin: 0;
+	font-size: 14px;
+}
+
+.admaps-appearance tr:first-child th {
+	padding-top: 0;
+}
+
+#admaps-appearance .form-table th {
+	width: 180px;
+}
+
+.admaps-settings .admaps-tab-panel {
+	max-width: 900px;
+}
+
+.admaps-settings .admaps-tab-panel > p:first-child {
+	margin-top: 16px;
+}
