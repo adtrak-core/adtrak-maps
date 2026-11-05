@@ -173,7 +173,20 @@ class Import_Export {
 				continue;
 			}
 
-			Map_Data::save( $post_id, $map['data'] );
+			$data = $map['data'];
+			if ( isset( $data['markers'] ) && is_array( $data['markers'] ) ) {
+				foreach ( $data['markers'] as &$marker ) {
+					if ( is_array( $marker ) && 'image' === ( $marker['icon']['type'] ?? '' ) ) {
+						$marker['icon'] = array(
+							'type'  => 'svg',
+							'color' => $marker['icon']['color'] ?? '',
+						);
+					}
+				}
+				unset( $marker );
+			}
+
+			Map_Data::save( $post_id, $data );
 			++$imported;
 		}
 
@@ -217,7 +230,7 @@ class Import_Export {
 
 			<div class="card">
 				<h2><?php esc_html_e( 'Import', 'admaps' ); ?></h2>
-				<p><?php esc_html_e( 'Upload a JSON file exported from Adtrak Maps on another site. Each map is created as a new map; nothing is overwritten. Custom pin images still point at the original site, so choose them again from this site\'s media library.', 'admaps' ); ?></p>
+				<p><?php esc_html_e( 'Upload a JSON file exported from Adtrak Maps on another site. Each map is created as a new map; nothing is overwritten. Pins that used a custom image become standard coloured pins, so choose their images again from this site\'s media library if needed.', 'admaps' ); ?></p>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 					<input type="hidden" name="action" value="admaps_import">
 					<?php wp_nonce_field( 'admaps_import' ); ?>
