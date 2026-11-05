@@ -50,6 +50,7 @@
 			label: '',
 			popup: '',
 			legend: false,
+			directions: !! ITEM.directions,
 			popup_min: 0,
 			popup_max: 0,
 			icon: { type: 'svg', color: ITEM.pin_color, attachment_id: 0, url: '', width: 28, height: 42, anchor: 'bottom' }
@@ -451,6 +452,9 @@
 		}
 
 		html += '<div class="admaps-field"><label for="' + EDITOR_ID + '">Info bubble</label><textarea id="' + EDITOR_ID + '" rows="6"></textarea></div>';
+		if ( type === 'markers' ) {
+			html += '<p class="admaps-field admaps-field--check"><label><input type="checkbox" data-field="directions"' + ( item.directions ? ' checked' : '' ) + '> Add a "Get directions" link (Google Maps)</label></p>';
+		}
 		var sized = item.popup_min > 0 || item.popup_max > 0;
 		html += '<details class="admaps-advanced"' + ( sized ? ' open' : '' ) + '><summary>Bubble size' + ( sized ? ' (custom)' : '' ) + '</summary>' +
 			'<div class="admaps-field-row">' +

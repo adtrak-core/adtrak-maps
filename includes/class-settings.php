@@ -45,6 +45,7 @@ class Settings {
 			'default_height'      => '450px',
 			'default_unit'        => 'mi',
 			'default_radius'      => 5,
+			'directions_text'     => __( 'Get directions', 'admaps' ),
 			'custom_label'        => '',
 			'custom_url'          => '',
 			'custom_attribution'  => '',
@@ -69,6 +70,7 @@ class Settings {
 			'weight'         => 2,
 			'fill'           => '#457b9d',
 			'fill_opacity'   => 0.25,
+			'directions'     => false,
 		);
 	}
 
@@ -179,6 +181,9 @@ class Settings {
 		$radius                = (float) ( $raw['default_radius'] ?? 5 );
 		$out['default_radius'] = $radius > 0 ? round( min( $radius, 5000 ), 2 ) : 5;
 
+		$directions             = sanitize_text_field( (string) ( $raw['directions_text'] ?? '' ) );
+		$out['directions_text'] = '' !== $directions ? $directions : __( 'Get directions', 'admaps' );
+
 		$out['appearance'] = Appearance::sanitize( $raw['appearance'] ?? array(), false );
 
 		$items = isset( $raw['item_defaults'] ) && is_array( $raw['item_defaults'] ) ? $raw['item_defaults'] : array();
@@ -193,6 +198,8 @@ class Settings {
 		}
 		$weight                          = $items['weight'] ?? $base['weight'];
 		$out['item_defaults']['weight'] = is_numeric( $weight ) ? max( 0, min( 20, (int) $weight ) ) : $base['weight'];
+
+		$out['item_defaults']['directions'] = ! empty( $items['directions'] );
 
 		return $out;
 	}
@@ -268,6 +275,13 @@ class Settings {
 								<p class="description"><?php esc_html_e( 'Used by new maps. px, vh, rem, em or %.', 'admaps' ); ?></p>
 							</td>
 						</tr>
+						<tr>
+							<th scope="row"><label for="admaps-directions-text"><?php esc_html_e( 'Directions link text', 'admaps' ); ?></label></th>
+							<td>
+								<input type="text" class="regular-text" id="admaps-directions-text" name="<?php echo esc_attr( $name ); ?>[directions_text]" value="<?php echo esc_attr( $s['directions_text'] ); ?>">
+								<p class="description"><?php esc_html_e( 'Used on pins with the directions link ticked. Opens Google Maps directions to the pin in a new tab (or the Google Maps app on phones).', 'admaps' ); ?></p>
+							</td>
+						</tr>
 					</table>
 				</section>
 
@@ -284,6 +298,10 @@ class Settings {
 						<tr>
 							<th scope="row"><label for="admaps-item-pin"><?php esc_html_e( 'Pin colour', 'admaps' ); ?></label></th>
 							<td><input type="text" class="admaps-color-field" id="admaps-item-pin" name="<?php echo esc_attr( $name ); ?>[item_defaults][pin_color]" value="<?php echo esc_attr( $items['pin_color'] ); ?>"></td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Directions link', 'admaps' ); ?></th>
+							<td><label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[item_defaults][directions]" value="1" <?php checked( $items['directions'] ); ?>> <?php esc_html_e( 'Add a directions link to new pins', 'admaps' ); ?></label></td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="admaps-item-fill"><?php esc_html_e( 'Area fill colour', 'admaps' ); ?></label></th>

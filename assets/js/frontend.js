@@ -180,15 +180,29 @@
 		return { minWidth: min, maxWidth: Math.max( min, max ) };
 	}
 
-	function bindContent( layer, item, isShape, popup ) {
+	/**
+	 * Google Maps directions to a pin; opens the app on phones.
+	 */
+	function directionsLink( item, cfg ) {
+		var text = ( cfg.labels && cfg.labels.directions ) || 'Get directions';
+		var url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent( item.lat + ',' + item.lng );
+		return '<p class="admaps-directions"><a href="' + escapeHtml( url ) + '" target="_blank" rel="noopener">' + escapeHtml( text ) + '</a></p>';
+	}
+
+	function bindContent( layer, item, isShape, cfg ) {
+		cfg = cfg || {};
 		if ( item.label ) {
 			layer.bindTooltip( escapeHtml( item.label ), { direction: 'top', sticky: !! isShape } );
 		}
-		if ( item.popup ) {
-			var opts = popupOptions( item, popup );
+		var html = item.popup || '';
+		if ( ! isShape && item.directions ) {
+			html += directionsLink( item, cfg );
+		}
+		if ( html ) {
+			var opts = popupOptions( item, cfg.popup );
 			opts.admapsMin = opts.minWidth;
 			opts.admapsMax = opts.maxWidth;
-			layer.bindPopup( item.popup, opts );
+			layer.bindPopup( html, opts );
 		}
 	}
 
@@ -233,17 +247,17 @@
 
 		( cfg.polygons || [] ).forEach( function ( item ) {
 			var layer = polygonLayer( item ).addTo( map );
-			bindContent( layer, item, true, cfg.popup );
+			bindContent( layer, item, true, cfg );
 			bounds.extend( itemBounds( 'polygons', item ) );
 		} );
 		( cfg.circles || [] ).forEach( function ( item ) {
 			var layer = circleLayer( item ).addTo( map );
-			bindContent( layer, item, true, cfg.popup );
+			bindContent( layer, item, true, cfg );
 			bounds.extend( itemBounds( 'circles', item ) );
 		} );
 		markers.forEach( function ( item ) {
 			var layer = markerLayer( item );
-			bindContent( layer, item, false, cfg.popup );
+			bindContent( layer, item, false, cfg );
 			group.addLayer( layer );
 			bounds.extend( [ item.lat, item.lng ] );
 		} );

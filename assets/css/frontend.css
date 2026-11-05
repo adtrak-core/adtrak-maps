@@ -71,6 +71,19 @@
 	margin-bottom: 0;
 }
 
+.admaps-map .leaflet-popup-content .admaps-directions {
+	margin: 0.75em 0 0;
+}
+
+.admaps-map .leaflet-popup-content .admaps-directions a {
+	font-weight: 600;
+}
+
+.admaps-map .leaflet-popup-content .admaps-directions a::after {
+	content: " \2197";
+	content: " \2197" / "";
+}
+
 .admaps-map .leaflet-popup-content img {
 	max-width: 100%;
 	height: auto;

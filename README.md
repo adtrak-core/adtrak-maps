@@ -4,6 +4,7 @@ Lightweight Leaflet maps for client WordPress sites, built to replace Scribble M
 
 - Multiple maps, managed under **Maps** in the admin
 - Pins with HTML info bubbles: coloured SVG pins or your own image
+- Optional "Get directions" link on pins, opening Google Maps (or its app on phones)
 - Radius circles (miles, km or metres) and polygon coverage areas
 - Colours and opacities for everything, plus an optional legend
 - Optional clustering of nearby pins
@@ -26,7 +27,7 @@ Download a release zip (or zip the `admaps` folder) and upload it via **Plugins 
    - **Add radius**: click to place the centre, then set the radius in the side panel.
    - **Draw area**: click to add corners; click the first corner to finish. Drag handles to reshape, right-click a corner to remove it.
    - **Search** an address, postcode or ZIP, then use **+ Pin** or **+ Radius** on a result.
-3. Select an item in the list to edit its label, colours, info bubble, legend visibility and (under **Bubble size**) bubble width.
+3. Select an item in the list to edit its label, colours, info bubble, legend visibility and (under **Bubble size**) bubble width. Pins can also add a **Get directions** link to their bubble.
 4. Set height, map style, zoom behaviour, clustering and legend in the **Map settings** box. Use **Set start view** if *Fit to contents* is off.
 5. Publish, then copy the shortcode from the **Shortcode** box (or the Maps list).
 
@@ -52,7 +53,7 @@ Draft maps are shown only to people who can edit them. A missing map renders not
 
 | Tab | Contents |
 |---|---|
-| General | Default map style (tile layer) and default height for new maps. |
+| General | Default map style (tile layer), default height for new maps, and the directions link text. |
 | Appearance | Info bubble width, text size, padding, corner radius and colours; legend text size and colours; whether to use the theme's font. |
 | New item defaults | Starting colours, opacities, line width and radius for new items. After the first item, new items copy the previous item of the same type. |
 | Custom tiles | A keyed tile provider (MapTiler, Stadia, Mapbox…), which then appears as a map style. |

@@ -227,7 +227,8 @@ class Map_Data {
 			'lng'    => $pos[1],
 			'label'  => sanitize_text_field( (string) ( $raw['label'] ?? '' ) ),
 			'popup'  => wp_kses_post( (string) ( $raw['popup'] ?? '' ) ),
-			'legend' => self::to_bool( $raw['legend'] ?? false ),
+			'legend'     => self::to_bool( $raw['legend'] ?? false ),
+			'directions' => self::to_bool( $raw['directions'] ?? false ),
 		) + self::sanitize_popup_size( $raw ) + array(
 			'icon'   => array(
 				'type'          => $type,
@@ -374,6 +375,9 @@ class Map_Data {
 			'popup'    => array(
 				'minWidth' => (int) $style['popup_min'],
 				'maxWidth' => (int) $style['popup_max'],
+			),
+			'labels'   => array(
+				'directions' => Settings::get()['directions_text'],
 			),
 			'tiles'    => $tiles,
 			'markers'  => $data['markers'],
