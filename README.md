@@ -1,6 +1,6 @@
 # Adtrak Maps
 
-Lightweight Leaflet maps for client WordPress sites, built to replace Scribble Maps embeds. Add pins with HTML info bubbles, radius circles and drawn coverage areas, style them, and drop the map into any page with a shortcode.
+Lightweight Leaflet maps for client WordPress sites, built to replace Scribble Maps embeds but can be used for any map requirement (excluding Google Maps). Add pins with HTML info bubbles, radius circles and drawn coverage areas, style them, and drop the map into any page with a shortcode.
 
 - Multiple maps, managed under **Maps** in the admin
 - Pins with HTML info bubbles: coloured SVG pins or your own image
