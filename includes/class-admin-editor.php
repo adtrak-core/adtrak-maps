@@ -175,8 +175,8 @@ class Admin_Editor {
 					<button type="button" class="button" data-admaps-draw="polygon"><span class="dashicons dashicons-admin-site-alt3" aria-hidden="true"></span> <?php esc_html_e( 'Draw area', 'admaps' ); ?></button>
 				</div>
 				<div class="admaps-toolbar__group admaps-search">
-					<label class="screen-reader-text" for="admaps-search-input"><?php esc_html_e( 'Search for an address or postcode', 'admaps' ); ?></label>
-					<input type="search" id="admaps-search-input" form="admaps-detached" placeholder="<?php esc_attr_e( 'Search address or postcode…', 'admaps' ); ?>">
+					<label class="screen-reader-text" for="admaps-search-input"><?php esc_html_e( 'Search for an address, postcode or ZIP code', 'admaps' ); ?></label>
+					<input type="search" id="admaps-search-input" form="admaps-detached" placeholder="<?php esc_attr_e( 'Search address, postcode or ZIP…', 'admaps' ); ?>">
 					<button type="button" class="button" id="admaps-search-button"><?php esc_html_e( 'Search', 'admaps' ); ?></button>
 					<ul class="admaps-search__results" id="admaps-search-results" hidden></ul>
 				</div>
