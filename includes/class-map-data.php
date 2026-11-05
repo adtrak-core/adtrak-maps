@@ -209,6 +209,10 @@ class Map_Data {
 		if ( $attach && 'attachment' === get_post_type( $attach ) ) {
 			$attach_url = wp_get_attachment_url( $attach );
 			$url        = $attach_url ? $attach_url : $url;
+			$meta       = wp_get_attachment_metadata( $attach );
+			if ( 'image' === $type && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+				$height = max( 8, min( 300, (int) round( $width * $meta['height'] / $meta['width'] ) ) );
+			}
 		} else {
 			$attach = 0;
 		}

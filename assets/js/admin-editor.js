@@ -418,11 +418,10 @@
 				( icon.url ? '<img src="' + esc( icon.url ) + '" alt="">' : '' ) +
 				'<button type="button" class="button admaps-choose-image">' + esc( i18n.chooseImage ) + '</button></div>' +
 				( icon.url && ! icon.attachment_id ? '<p class="description admaps-warning">' + esc( i18n.externalImage ) + '</p>' : '' ) +
-				'<div class="admaps-field-row">' +
-				field( 'Height (px)', '<input type="number" min="8" max="200" data-field="icon.height" value="' + esc( icon.height ) + '">' ) +
 				field( 'Anchor', '<select data-field="icon.anchor"><option value="bottom"' + ( icon.anchor !== 'center' ? ' selected' : '' ) + '>Bottom centre</option><option value="center"' + ( icon.anchor === 'center' ? ' selected' : '' ) + '>Centre</option></select>' ) +
-				'</div></div>';
-			html += field( 'Width (px)', '<input type="number" min="8" max="200" data-field="icon.width" value="' + esc( icon.width ) + '">' );
+				'</div>';
+			html += field( 'Size (px wide)', '<input type="number" min="8" max="200" data-field="icon.width" value="' + esc( icon.width ) + '">' +
+				'<span class="description">Height follows the pin\'s proportions.</span>' );
 		}
 
 		if ( type === 'circles' ) {
@@ -465,6 +464,9 @@
 
 		$form.html( html );
 		toggleIconFields( item );
+		if ( type === 'markers' && item.icon.type === 'image' ) {
+			learnImageRatio( item );
+		}
 
 		$form.find( '.admaps-color' ).wpColorPicker( {
 			change: function ( event, ui ) {
@@ -584,9 +586,18 @@
 					if ( ( key === 'width' || key === 'height' ) && ! ( value >= 8 ) ) {
 						return;
 					}
-					item.icon[ key ] = value;
+					if ( key === 'width' ) {
+						value = Math.min( 200, Math.round( value ) );
+						item.icon.height = item.icon.type === 'image' && item.icon.url ? imageHeight( item.icon, value ) : Math.round( value * 1.5 );
+						item.icon.width = value;
+					} else {
+						item.icon[ key ] = value;
+					}
 					if ( key === 'type' ) {
 						toggleIconFields( item );
+						if ( item.icon.type === 'image' && item.icon.url ) {
+							item.icon.height = imageHeight( item.icon );
+						}
 					}
 				} else {
 					if ( name === 'weight' && isNaN( value ) ) {
@@ -666,6 +677,37 @@
 		}
 	} );
 
+	/**
+	 * Image pins keep the image's own proportions; ratios are height / width, keyed by URL.
+	 */
+	var imageRatios = {};
+
+	function imageHeight( icon, width ) {
+		var ratio = imageRatios[ icon.url ] || ( icon.width && icon.height ? icon.height / icon.width : 1 );
+		return Math.max( 8, Math.round( ( width || icon.width ) * ratio ) );
+	}
+
+	function learnImageRatio( item ) {
+		var url = item.icon.url;
+		if ( ! url || imageRatios[ url ] ) {
+			return;
+		}
+		var img = new window.Image();
+		img.onload = function () {
+			if ( ! img.naturalWidth || ! img.naturalHeight ) {
+				return;
+			}
+			imageRatios[ url ] = img.naturalHeight / img.naturalWidth;
+			var height = imageHeight( item.icon );
+			if ( item.icon.url === url && item.icon.height !== height ) {
+				item.icon.height = height;
+				updateLayer( 'markers', item );
+				sync();
+			}
+		};
+		img.src = url;
+	}
+
 	var mediaFrame = null;
 	$form.on( 'click', '.admaps-choose-image', function () {
 		if ( ! mediaFrame ) {
@@ -682,11 +724,14 @@
 				}
 				var a = mediaFrame.state().get( 'selection' ).first().toJSON();
 				var width = item.icon.type === 'image' && item.icon.width ? item.icon.width : 40;
+				if ( a.width && a.height ) {
+					imageRatios[ a.url ] = a.height / a.width;
+				}
 				item.icon.type = 'image';
 				item.icon.attachment_id = a.id;
 				item.icon.url = a.url;
 				item.icon.width = width;
-				item.icon.height = a.width && a.height ? Math.round( width * a.height / a.width ) : width;
+				item.icon.height = imageHeight( item.icon );
 				updateLayer( 'markers', item );
 				sync();
 				destroyEditor();
