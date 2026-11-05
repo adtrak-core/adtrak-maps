@@ -227,6 +227,48 @@
 	}
 
 	/**
+	 * On phones and tablets, one finger scrolls the page and two fingers pan and zoom the map.
+	 */
+	function twoFingerTouch( map, el, cfg ) {
+		if ( ! cfg.twoFinger || ! window.matchMedia || ! window.matchMedia( '(hover: none) and (pointer: coarse)' ).matches ) {
+			return;
+		}
+		map.dragging.disable();
+
+		var hint = L.DomUtil.create( 'div', 'admaps-touch-hint', el );
+		hint.setAttribute( 'aria-hidden', 'true' );
+		hint.textContent = ( cfg.labels && cfg.labels.twoFinger ) || 'Use two fingers to move the map';
+		var timer;
+
+		function hide() {
+			el.classList.remove( 'is-touch-hint' );
+		}
+
+		el.addEventListener( 'touchmove', function ( e ) {
+			if ( e.touches.length !== 1 || ( e.target.closest && e.target.closest( '.leaflet-popup, .leaflet-control' ) ) ) {
+				hide();
+				return;
+			}
+			el.classList.add( 'is-touch-hint' );
+			clearTimeout( timer );
+			timer = setTimeout( hide, 1500 );
+		}, { passive: true } );
+		el.addEventListener( 'touchstart', function ( e ) {
+			if ( e.touches.length > 1 ) {
+				hide();
+				map.dragging.enable();
+			}
+		}, { passive: true } );
+		[ 'touchend', 'touchcancel' ].forEach( function ( type ) {
+			el.addEventListener( type, function ( e ) {
+				if ( ! e.touches.length ) {
+					map.dragging.disable();
+				}
+			}, { passive: true } );
+		} );
+	}
+
+	/**
 	 * Build a live map inside el.
 	 */
 	function createMap( el, cfg ) {
@@ -238,6 +280,7 @@
 
 		tileLayer( cfg.tiles ).addTo( map );
 		fitPopupsToMap( map );
+		twoFingerTouch( map, el, cfg );
 
 		var bounds = L.latLngBounds( [] );
 		var markers = cfg.markers || [];

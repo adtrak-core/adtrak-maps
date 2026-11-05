@@ -385,18 +385,20 @@ class Map_Data {
 		unset( $settings['tiles'], $settings['height'], $settings['style'] );
 
 		return array(
-			'settings' => $settings,
-			'popup'    => array(
+			'settings'  => $settings,
+			'popup'     => array(
 				'minWidth' => (int) $style['popup_min'],
 				'maxWidth' => (int) $style['popup_max'],
 			),
-			'labels'   => array(
+			'labels'    => array(
 				'directions' => Settings::get()['directions_text'],
+				'twoFinger'  => __( 'Use two fingers to move the map', 'admaps' ),
 			),
-			'tiles'    => $tiles,
-			'markers'  => $data['markers'],
-			'circles'  => $data['circles'],
-			'polygons' => $data['polygons'],
+			'twoFinger' => (bool) Settings::get()['two_finger_touch'],
+			'tiles'     => $tiles,
+			'markers'   => $data['markers'],
+			'circles'   => $data['circles'],
+			'polygons'  => $data['polygons'],
 		);
 	}
 

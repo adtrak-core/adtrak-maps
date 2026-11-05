@@ -52,6 +52,7 @@ class Settings {
 			'custom_subdomains'   => '',
 			'custom_max_zoom'     => 19,
 			'delete_on_uninstall' => false,
+			'two_finger_touch'    => true,
 			'appearance'          => Appearance::defaults(),
 			'item_defaults'       => self::item_defaults(),
 		);
@@ -168,6 +169,7 @@ class Settings {
 		$out['custom_subdomains']   = preg_replace( '/[^a-z0-9]/', '', strtolower( (string) ( $raw['custom_subdomains'] ?? '' ) ) );
 		$out['custom_max_zoom']     = max( 1, min( 22, (int) ( $raw['custom_max_zoom'] ?? 19 ) ) );
 		$out['delete_on_uninstall'] = ! empty( $raw['delete_on_uninstall'] );
+		$out['two_finger_touch']    = ! empty( $raw['two_finger_touch'] );
 
 		$tiles = sanitize_key( (string) ( $raw['default_tiles'] ?? 'osm' ) );
 		if ( 'custom' === $tiles && '' === $out['custom_url'] ) {
@@ -370,6 +372,13 @@ class Settings {
 
 				<section class="admaps-tab-panel" data-admaps-panel="advanced">
 					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Touch screens', 'admaps' ); ?></th>
+							<td>
+								<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[two_finger_touch]" value="1" <?php checked( $s['two_finger_touch'] ); ?>> <?php esc_html_e( 'Use two fingers to move the map on phones and tablets', 'admaps' ); ?></label>
+								<p class="description"><?php esc_html_e( 'One finger scrolls the page past the map, so visitors don\'t get stuck. Tapping pins and areas still opens their bubbles.', 'admaps' ); ?></p>
+							</td>
+						</tr>
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Remove data', 'admaps' ); ?></th>
 							<td><label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[delete_on_uninstall]" value="1" <?php checked( $s['delete_on_uninstall'] ); ?>> <?php esc_html_e( 'Delete all maps and settings when the plugin is deleted', 'admaps' ); ?></label></td>

@@ -153,3 +153,28 @@ img.admaps-legend__icon {
 	border-left: 4px solid #d63638;
 	background: #fcf0f1;
 }
+
+/* Two-finger hint on touch screens */
+.admaps-touch-hint {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: rgba(0, 0, 0, 0.5);
+	color: #fff;
+	font-size: 18px;
+	text-align: center;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s;
+}
+
+.admaps-map.is-touch-hint .admaps-touch-hint {
+	opacity: 1;
+}

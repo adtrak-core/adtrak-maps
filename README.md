@@ -45,7 +45,7 @@ Download a release zip (or zip the `admaps` folder) and upload it via **Plugins 
 | `zoom` | Fixed zoom level (0–22); turns off *Fit to contents* for this instance. |
 | `class` | Extra CSS classes on the map container. |
 
-Draft maps are shown only to people who can edit them. A missing map renders nothing for visitors and shows an error to editors. Maps are lazy-initialised when scrolled near, and resize correctly inside tabs, accordions and popups.
+Draft maps are shown only to people who can edit them. A missing map renders nothing for visitors and shows an error to editors. Maps are lazy-initialised when scrolled near, and resize correctly inside tabs, accordions and popups. On phones and tablets one finger scrolls the page past the map and two fingers move it, with a short hint if someone tries one finger. The mouse wheel only zooms after the map is clicked, unless "Zoom with scroll wheel" is on.
 
 ## Settings
 
@@ -57,7 +57,7 @@ Draft maps are shown only to people who can edit them. A missing map renders not
 | Appearance | Info bubble width, text size, padding, corner radius and colours; legend text size and colours; whether to use the theme's font. |
 | New item defaults | Starting colours, opacities, line width and radius for new items. After the first item, new items copy the previous item of the same type. |
 | Custom tiles | A keyed tile provider (MapTiler, Stadia, Mapbox…), which then appears as a map style. |
-| Advanced | Delete all maps and settings when the plugin is deleted (off by default). |
+| Advanced | Two-finger map movement on touch screens (on by default). Delete all maps and settings when the plugin is deleted (off by default). |
 | Import / Export | Export all maps as JSON, or import maps from another site. |
 
 Each map has an **Appearance** box (below the editor, collapsed by default) to override any of these for that map. Blank fields use the site default. Each pin and shape can also override its bubble width under **Bubble size**. Bubbles always shrink to fit small maps.
