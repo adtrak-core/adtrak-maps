@@ -84,7 +84,7 @@ Values set in the admin are applied inline, so target `.admaps-map` with higher 
 
 ## Import and export
 
-- **Between sites:** **Maps → Settings → Import / Export** exports selected or all maps as JSON (also available as a row action and bulk action in the Maps list). Importing can optionally copy custom pin images into the media library.
+- **Between sites:** **Maps → Settings → Import / Export** exports selected or all maps as JSON (also available as a row action and bulk action in the Maps list). Custom pin images are not copied; imported image pins still point at the original site, so choose them again from the media library.
 - **KML / GeoJSON:** in the map editor, **Import KML / GeoJSON** adds features from a file (Google My Maps, Google Earth, Scribble Maps paid plans). Pins, polygons and their colours are imported; many-sided circles are converted back to editable radii; HTML descriptions are sanitised. Lines are skipped. KMZ files need unzipping first.
 
 Scribble Maps' free plan can't export, so most migrations are quickest rebuilt by hand with the address search.

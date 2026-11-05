@@ -149,9 +149,7 @@ class Import_Export {
 			self::redirect( $back, 'error', __( 'That is not an Adtrak Maps export file. To bring in a KML or GeoJSON file, create a map and use "Import KML / GeoJSON" in the editor.', 'admaps' ) );
 		}
 
-		$sideload = ! empty( $_POST['admaps_sideload'] );
 		$imported = 0;
-		$images   = array();
 
 		foreach ( $payload['maps'] as $map ) {
 			if ( ! is_array( $map ) || ! isset( $map['data'] ) || ! is_array( $map['data'] ) ) {
@@ -175,47 +173,12 @@ class Import_Export {
 				continue;
 			}
 
-			$data = $map['data'];
-			if ( $sideload && ! empty( $data['markers'] ) && is_array( $data['markers'] ) ) {
-				foreach ( $data['markers'] as &$marker ) {
-					if ( ! is_array( $marker ) || empty( $marker['icon']['url'] ) || 'image' !== ( $marker['icon']['type'] ?? '' ) ) {
-						continue;
-					}
-					$url = esc_url_raw( (string) $marker['icon']['url'] );
-					if ( ! isset( $images[ $url ] ) ) {
-						$images[ $url ] = self::sideload( $url );
-					}
-					if ( $images[ $url ] ) {
-						$marker['icon']['attachment_id'] = $images[ $url ];
-					}
-				}
-				unset( $marker );
-			}
-
-			Map_Data::save( $post_id, $data );
+			Map_Data::save( $post_id, $map['data'] );
 			++$imported;
 		}
 
 		/* translators: %d: number of maps */
 		self::redirect( $back, 'success', sprintf( _n( 'Imported %d map.', 'Imported %d maps.', $imported, 'admaps' ), $imported ) );
-	}
-
-	/**
-	 * Copy a remote image into the media library.
-	 *
-	 * @param string $url Image URL.
-	 * @return int Attachment ID, or 0 on failure.
-	 */
-	private static function sideload( string $url ): int {
-		if ( '' === $url || ! wp_http_validate_url( $url ) ) {
-			return 0;
-		}
-		require_once ABSPATH . 'wp-admin/includes/media.php';
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		require_once ABSPATH . 'wp-admin/includes/image.php';
-
-		$id = media_sideload_image( $url, 0, null, 'id' );
-		return is_wp_error( $id ) ? 0 : (int) $id;
 	}
 
 	/**
@@ -254,12 +217,11 @@ class Import_Export {
 
 			<div class="card">
 				<h2><?php esc_html_e( 'Import', 'admaps' ); ?></h2>
-				<p><?php esc_html_e( 'Upload a JSON file exported from Adtrak Maps on another site. Each map is created as a new map; nothing is overwritten.', 'admaps' ); ?></p>
+				<p><?php esc_html_e( 'Upload a JSON file exported from Adtrak Maps on another site. Each map is created as a new map; nothing is overwritten. Custom pin images still point at the original site, so choose them again from this site\'s media library.', 'admaps' ); ?></p>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 					<input type="hidden" name="action" value="admaps_import">
 					<?php wp_nonce_field( 'admaps_import' ); ?>
 					<p><input type="file" name="admaps_file" accept=".json,application/json" required></p>
-					<p><label><input type="checkbox" name="admaps_sideload" value="1" checked> <?php esc_html_e( 'Copy custom pin images into this site\'s media library', 'admaps' ); ?></label></p>
 					<?php submit_button( __( 'Import maps', 'admaps' ), 'secondary', 'submit', false ); ?>
 				</form>
 			</div>
