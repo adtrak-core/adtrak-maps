@@ -28,8 +28,8 @@ Download a release zip (or zip the `admaps` folder) and upload it via **Plugins 
    - **Draw area**: click to add corners; click the first corner to finish. Drag handles to reshape, right-click a corner to remove it.
    - **Search** an address, postcode or ZIP, then use **+ Pin** or **+ Radius** on a result.
 3. Select an item in the list to edit its label, colours, info bubble, legend visibility and (under **Bubble size**) bubble width. Pins can also add a **Get directions** link to their bubble. Use **← All items** to return to the list. Items without a label are listed by an editor-only name ("Pin 3", or the place name when added from search), which is never shown to visitors.
-4. Set height, map style, zoom behaviour, clustering and legend in the **Map settings** box. Use **Set start view** if *Fit to contents* is off.
-5. Publish, then copy the shortcode from the **Shortcode** box (or the Maps list).
+4. Set height, map style, zoom behaviour, clustering and legend under **Map settings** below the map. Use **Set start view** if *Fit to contents* is off.
+5. Publish, then copy the shortcode shown under the map name (or from the Maps list).
 
 ### Shortcode
 
@@ -59,7 +59,7 @@ Draft maps are shown only to people who can edit them. A missing map renders not
 | Custom tiles | A keyed tile provider (MapTiler, Stadia, Mapbox…), which then appears as a map style. |
 | Advanced | Delete all maps and settings when the plugin is deleted (off by default). |
 
-Each map has an **Appearance** box (below the editor, collapsed by default) to override any of these for that map. Blank fields use the site default. Each pin and shape can also override its bubble width under **Bubble size**. Bubbles always shrink to fit small maps.
+Each map has an **Appearance overrides** section (below the map settings; collapsed unless the map has overrides) to override any of these for that map. Blank fields use the site default. Each pin and shape can also override its bubble width under **Bubble size**. Bubbles always shrink to fit small maps.
 
 ### Theming with CSS
 
@@ -140,7 +140,7 @@ includes/
   class-appearance.php       Appearance fields, resolving and CSS variables
   class-settings.php         Maps → Settings
   class-post-type.php        admaps_map post type and list screen
-  class-admin-editor.php     Edit screen meta boxes and saving
+  class-admin-editor.php     Edit screen and saving
   class-shortcode.php        [admaps] output
   class-assets.php           Script/style registration and tile providers
   class-import-export.php    JSON export/import
