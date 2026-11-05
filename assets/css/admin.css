@@ -402,3 +402,7 @@ fieldset.admaps-field label {
 .admaps-settings .admaps-tab-panel > p:first-child {
 	margin-top: 16px;
 }
+
+.admaps-editor__map.is-drawing .leaflet-interactive {
+	cursor: crosshair;
+}

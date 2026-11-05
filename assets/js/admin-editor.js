@@ -228,10 +228,12 @@
 			} );
 		}
 		layer.on( 'click', function ( e ) {
-			L.DomEvent.stopPropagation( e );
-			if ( ! map.pm.globalDrawModeEnabled() ) {
-				select( type, item.id );
+			// While placing or drawing, let the click reach the map so items can go on top of shapes.
+			if ( drawingType || map.pm.globalDrawModeEnabled() ) {
+				return;
 			}
+			L.DomEvent.stopPropagation( e );
+			select( type, item.id );
 		} );
 		bindLabel( type, layer, item );
 		layer.addTo( map );
@@ -759,6 +761,7 @@
 		select( null );
 		map.pm.disableDraw();
 		drawingType = type;
+		$( map.getContainer() ).addClass( 'is-drawing' );
 		$( '[data-admaps-draw]' ).removeClass( 'is-active' );
 		$( '[data-admaps-draw="' + type + '"]' ).addClass( 'is-active' );
 
@@ -783,6 +786,7 @@
 	function stopDraw() {
 		map.pm.disableDraw();
 		drawingType = null;
+		$( map.getContainer() ).removeClass( 'is-drawing' );
 		$( '[data-admaps-draw]' ).removeClass( 'is-active' );
 		hideNotice();
 	}
