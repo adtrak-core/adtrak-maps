@@ -12,79 +12,19 @@
 	font-size: 12px;
 }
 
+#admaps-shortcode .admaps-shortcode input {
+	flex: 1;
+	width: auto;
+}
 
 .column-admaps_shortcode {
 	width: 230px;
 }
 
-/* Edit screen: rendered inline under the title rather than in meta boxes */
-.admaps-shortcode-row {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px 10px;
-	align-items: center;
-	margin: 12px 0 16px;
-}
-
-.admaps-shortcode-row .admaps-shortcode input {
-	width: 170px;
-}
-
-.admaps-section {
-	margin-top: 24px;
-}
-
-#poststuff .admaps-section__title {
-	margin: 0 0 12px;
-	padding: 0;
-	font-size: 14px;
-	font-weight: 600;
-}
-
-summary.admaps-section__title {
-	cursor: pointer;
-}
-
-.admaps-count {
-	margin-left: 4px;
-	padding: 1px 7px;
-	border-radius: 9px;
-	background: #dcdcde;
-	font-size: 12px;
-	font-weight: 400;
-}
-
-.admaps-fields {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-	gap: 0 24px;
-	align-items: start;
-}
-
-.admaps-fields p {
-	margin: 0 0 12px;
-}
-
-.admaps-checks {
-	grid-column: 1 / -1;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px 24px;
-	margin: 0 0 12px;
-}
-
-.admaps-legend-settings > .description {
-	grid-column: 1 / -1;
-}
-
-.post-type-admaps_map #submitdiv .handle-actions {
-	display: none;
-}
-
 /* Editor */
-.admaps-editor {
-	border: 1px solid #c3c4c7;
-	background: #fff;
+#admaps-editor .inside {
+	margin: 0;
+	padding: 0;
 }
 
 .admaps-toolbar {
@@ -481,12 +421,6 @@ fieldset.admaps-field label {
 
 #admaps-appearance .form-table th {
 	width: 180px;
-}
-
-#admaps-appearance .form-table th,
-#admaps-appearance .form-table td {
-	padding-top: 6px;
-	padding-bottom: 6px;
 }
 
 .admaps-settings .admaps-tab-panel {

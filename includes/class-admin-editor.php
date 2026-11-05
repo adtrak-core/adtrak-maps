@@ -21,7 +21,6 @@ class Admin_Editor {
 	 */
 	public static function init(): void {
 		add_action( 'add_meta_boxes_' . Post_Type::NAME, array( __CLASS__, 'meta_boxes' ) );
-		add_action( 'edit_form_after_title', array( __CLASS__, 'render_screen' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		add_action( 'save_post_' . Post_Type::NAME, array( __CLASS__, 'save' ), 10, 2 );
 		add_filter( 'enter_title_here', array( __CLASS__, 'title_placeholder' ), 10, 2 );
@@ -39,30 +38,27 @@ class Admin_Editor {
 	}
 
 	/**
-	 * Only the core Publish box stays a meta box; everything else is rendered inline.
+	 * Register meta boxes.
 	 */
 	public static function meta_boxes(): void {
-		remove_meta_box( 'slugdiv', Post_Type::NAME, 'normal' );
+		add_meta_box( 'admaps-editor', __( 'Map', 'admaps' ), array( __CLASS__, 'render_editor' ), Post_Type::NAME, 'normal', 'high' );
+		add_meta_box( 'admaps-shortcode', __( 'Shortcode', 'admaps' ), array( __CLASS__, 'render_shortcode' ), Post_Type::NAME, 'side', 'high' );
+		add_meta_box( 'admaps-settings', __( 'Map settings', 'admaps' ), array( __CLASS__, 'render_settings' ), Post_Type::NAME, 'side', 'default' );
+		add_meta_box( 'admaps-appearance', __( 'Appearance', 'admaps' ), array( __CLASS__, 'render_appearance' ), Post_Type::NAME, 'normal', 'default' );
+		add_filter( 'postbox_classes_' . Post_Type::NAME . '_admaps-appearance', array( __CLASS__, 'appearance_box_classes' ) );
 	}
 
 	/**
-	 * Render the editor screen below the title, outside meta boxes.
+	 * Start the Appearance box collapsed until the user has arranged their boxes.
 	 *
-	 * @param \WP_Post $post Post.
+	 * @param array $classes Postbox classes.
+	 * @return array
 	 */
-	public static function render_screen( \WP_Post $post ): void {
-		if ( Post_Type::NAME !== $post->post_type ) {
-			return;
+	public static function appearance_box_classes( array $classes ): array {
+		if ( false === get_user_option( 'closedpostboxes_' . Post_Type::NAME ) ) {
+			$classes[] = 'closed';
 		}
-		self::render_shortcode( $post );
-		self::render_editor( $post );
-		?>
-		<div class="admaps-section" id="admaps-settings">
-			<h2 class="admaps-section__title"><?php esc_html_e( 'Map settings', 'admaps' ); ?></h2>
-			<?php self::render_settings( $post ); ?>
-		</div>
-		<?php
-		self::render_appearance( $post );
+		return $classes;
 	}
 
 	/**
@@ -165,7 +161,7 @@ class Admin_Editor {
 	}
 
 	/**
-	 * Map editor.
+	 * Main editor meta box.
 	 *
 	 * @param \WP_Post $post Post.
 	 */
@@ -206,23 +202,21 @@ class Admin_Editor {
 	}
 
 	/**
-	 * Shortcode line under the title.
+	 * Shortcode meta box.
 	 *
 	 * @param \WP_Post $post Post.
 	 */
 	public static function render_shortcode( \WP_Post $post ): void {
-		echo '<div class="admaps-shortcode-row" id="admaps-shortcode"><strong>' . esc_html__( 'Shortcode:', 'admaps' ) . '</strong> ';
 		if ( 'auto-draft' === $post->post_status ) {
-			echo '<span class="description">' . esc_html__( 'Save the map to get its shortcode.', 'admaps' ) . '</span>';
-		} else {
-			Post_Type::shortcode_field( $post->ID );
-			echo ' <span class="description">' . esc_html__( 'Optional attributes: height="300px", zoom="12", class="my-class".', 'admaps' ) . '</span>';
+			echo '<p>' . esc_html__( 'Save the map to get its shortcode.', 'admaps' ) . '</p>';
+			return;
 		}
-		echo '</div>';
+		Post_Type::shortcode_field( $post->ID );
+		echo '<p class="description">' . esc_html__( 'Optional attributes: height="300px", zoom="12", class="my-class".', 'admaps' ) . '</p>';
 	}
 
 	/**
-	 * Map settings fields.
+	 * Settings meta box.
 	 *
 	 * @param \WP_Post $post Post.
 	 */
@@ -234,14 +228,13 @@ class Admin_Editor {
 
 		$checkbox = static function ( string $key, string $label ) use ( $s ) {
 			printf(
-				'<input type="hidden" name="admaps_settings[%1$s]" value="0"><label><input type="checkbox" name="admaps_settings[%1$s]" value="1" data-admaps-setting="%1$s" %2$s> %3$s</label>',
+				'<p><input type="hidden" name="admaps_settings[%1$s]" value="0"><label><input type="checkbox" name="admaps_settings[%1$s]" value="1" data-admaps-setting="%1$s" %2$s> %3$s</label></p>',
 				esc_attr( $key ),
 				checked( $s[ $key ], true, false ),
 				esc_html( $label )
 			);
 		};
 		?>
-		<div class="admaps-fields">
 		<p>
 			<label for="admaps-height"><strong><?php esc_html_e( 'Height', 'admaps' ); ?></strong></label><br>
 			<input type="text" id="admaps-height" name="admaps_settings[height]" value="<?php echo esc_attr( $s['height'] ); ?>" class="widefat" placeholder="450px">
@@ -261,24 +254,20 @@ class Admin_Editor {
 				<?php endforeach; ?>
 			</select>
 		</p>
-		<fieldset class="admaps-checks">
-			<legend class="screen-reader-text"><?php esc_html_e( 'Map behaviour', 'admaps' ); ?></legend>
-			<?php
-			$checkbox( 'fit_bounds', __( 'Fit to contents (ignore start view)', 'admaps' ) );
-			$checkbox( 'zoom_control', __( 'Show zoom buttons', 'admaps' ) );
-			$checkbox( 'scroll_zoom', __( 'Zoom with scroll wheel', 'admaps' ) );
-			$checkbox( 'cluster', __( 'Group nearby pins (clustering)', 'admaps' ) );
-			$checkbox( 'legend', __( 'Show legend', 'admaps' ) );
-			?>
-		</fieldset>
-		</div>
-		<div class="admaps-fields admaps-legend-settings">
+		<?php
+		$checkbox( 'fit_bounds', __( 'Fit to contents (ignore start view)', 'admaps' ) );
+		$checkbox( 'zoom_control', __( 'Show zoom buttons', 'admaps' ) );
+		$checkbox( 'scroll_zoom', __( 'Zoom with scroll wheel', 'admaps' ) );
+		$checkbox( 'cluster', __( 'Group nearby pins (clustering)', 'admaps' ) );
+		$checkbox( 'legend', __( 'Show legend', 'admaps' ) );
+		?>
+		<div class="admaps-legend-settings">
 			<p>
-				<label for="admaps-legend-title"><strong><?php esc_html_e( 'Legend title', 'admaps' ); ?></strong></label><br>
+				<label for="admaps-legend-title"><?php esc_html_e( 'Legend title', 'admaps' ); ?></label><br>
 				<input type="text" id="admaps-legend-title" name="admaps_settings[legend_title]" value="<?php echo esc_attr( $s['legend_title'] ); ?>" class="widefat" data-admaps-setting="legend_title">
 			</p>
 			<p>
-				<label for="admaps-legend-position"><strong><?php esc_html_e( 'Legend position', 'admaps' ); ?></strong></label><br>
+				<label for="admaps-legend-position"><?php esc_html_e( 'Legend position', 'admaps' ); ?></label><br>
 				<select id="admaps-legend-position" name="admaps_settings[legend_position]" class="widefat" data-admaps-setting="legend_position">
 					<?php
 					$positions = array(
@@ -308,28 +297,21 @@ class Admin_Editor {
 		$overrides = count( array_filter( $style, 'strlen' ) );
 		$link      = admin_url( 'edit.php?post_type=' . Post_Type::NAME . '&page=admaps-settings#appearance' );
 		?>
-		<details class="admaps-section" id="admaps-appearance" <?php echo $overrides ? 'open' : ''; ?>>
-			<summary class="admaps-section__title">
-				<?php
-				esc_html_e( 'Appearance overrides', 'admaps' );
-				if ( $overrides ) {
-					echo ' <span class="admaps-count">' . esc_html( sprintf( /* translators: %d: number of overridden settings */ _n( '%d set', '%d set', $overrides, 'admaps' ), $overrides ) ) . '</span>';
-				}
-				?>
-			</summary>
-			<p class="admaps-appearance__intro">
-				<?php
-				printf(
-					/* translators: %s: link to the settings page */
-					esc_html__( 'Override the site-wide %s for this map only. Leave a field blank to use the site default.', 'admaps' ),
-					'<a href="' . esc_url( $link ) . '">' . esc_html__( 'appearance settings', 'admaps' ) . '</a>'
-				);
-				?>
-			</p>
-			<table class="form-table admaps-appearance" role="presentation">
-				<?php Appearance::render_fields( 'admaps_settings[style]', $style, true ); ?>
-			</table>
-		</details>
+		<p class="admaps-appearance__intro">
+			<?php
+			printf(
+				/* translators: %s: link to the settings page */
+				esc_html__( 'Override the site-wide %s for this map only. Leave a field blank to use the site default.', 'admaps' ),
+				'<a href="' . esc_url( $link ) . '">' . esc_html__( 'appearance settings', 'admaps' ) . '</a>'
+			);
+			if ( $overrides ) {
+				echo ' <strong>' . esc_html( sprintf( /* translators: %d: number of overridden settings */ _n( '%d setting overridden.', '%d settings overridden.', $overrides, 'admaps' ), $overrides ) ) . '</strong>';
+			}
+			?>
+		</p>
+		<table class="form-table admaps-appearance" role="presentation">
+			<?php Appearance::render_fields( 'admaps_settings[style]', $style, true ); ?>
+		</table>
 		<?php
 	}
 
