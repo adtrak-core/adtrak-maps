@@ -20,11 +20,10 @@ class Updater {
 	const REPOSITORY = 'https://github.com/adtrak-core/adtrak-maps/';
 
 	/**
-	 * Hook up. Does nothing without a token, e.g. in a development checkout.
+	 * Hook up. Skipped in a git checkout so a development copy is never overwritten.
 	 */
 	public static function init(): void {
-		$token = self::token();
-		if ( '' === $token ) {
+		if ( is_dir( ADMAPS_PATH . '.git' ) ) {
 			return;
 		}
 
@@ -32,7 +31,11 @@ class Updater {
 
 		$checker = PucFactory::buildUpdateChecker( self::REPOSITORY, ADMAPS_FILE, 'admaps' );
 		$checker->setBranch( 'main' );
-		$checker->setAuthentication( $token );
+
+		// Optional: GitHub allows 60 unauthenticated API requests an hour per server IP.
+		if ( defined( 'ADMAPS_UPDATE_TOKEN' ) && ADMAPS_UPDATE_TOKEN ) {
+			$checker->setAuthentication( (string) ADMAPS_UPDATE_TOKEN );
+		}
 
 		$api = $checker->getVcsApi();
 		$api->enableReleaseAssets( '/^admaps-[0-9][0-9a-z.\-]*\.zip$/i', Api::REQUIRE_RELEASE_ASSETS );
@@ -47,22 +50,5 @@ class Updater {
 				return array_intersect_key( $strategies, array( Api::STRATEGY_LATEST_RELEASE => true ) );
 			}
 		);
-	}
-
-	/**
-	 * Read-only GitHub token. ADMAPS_UPDATE_TOKEN in wp-config.php wins over the one added to release zips.
-	 *
-	 * @return string
-	 */
-	private static function token(): string {
-		if ( defined( 'ADMAPS_UPDATE_TOKEN' ) ) {
-			return (string) ADMAPS_UPDATE_TOKEN;
-		}
-		$file = ADMAPS_PATH . 'update-token.php';
-		if ( is_readable( $file ) ) {
-			$token = include $file;
-			return is_string( $token ) ? trim( $token ) : '';
-		}
-		return '';
 	}
 }

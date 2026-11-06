@@ -23,7 +23,7 @@ Download a release zip (or zip the `admaps` folder) and upload it via **Plugins 
 
 Sites installed from a release zip check this repository's GitHub releases and offer new versions on the **Plugins** and **Updates** screens like any other plugin (including auto-updates). Only stable releases are offered; test sites can also get pre-releases by ticking **Settings → Advanced → Updates**.
 
-The repository is private, so release zips include a read-only GitHub token (`update-token.php`, added by the build script and never committed). Defining `ADMAPS_UPDATE_TOKEN` in `wp-config.php` overrides it. Without a token, as in a git checkout, update checks are off. Updates can always be installed by uploading the zip and choosing *Replace current with uploaded*.
+Update checks are off in a git checkout (a folder containing `.git`), so a development copy is never overwritten. GitHub allows 60 update checks an hour per server without a token; on a server hosting many sites, define a read-only token as `ADMAPS_UPDATE_TOKEN` in `wp-config.php`. Updates can always be installed by uploading the zip and choosing *Replace current with uploaded*.
 
 ## Using it
 
@@ -171,10 +171,14 @@ Versions follow [semantic versioning](https://semver.org/); `0.x` while in testi
 
 1. Update `Version:` and `ADMAPS_VERSION` in `admaps.php`, commit and push.
 2. Tag: `git tag -a v0.3.2 -m "v0.3.2" && git push origin v0.3.2`.
-3. Build the zip: `bin/build-release.sh v0.3.2`. It writes `admaps-0.3.2.zip` (git-ignored) and adds the update token from `ADMAPS_UPDATE_TOKEN` or `~/.config/admaps/update-token`. Files marked `export-ignore` in `.gitattributes` (this README, `bin/`) are left out.
+3. Build the zip: `bin/build-release.sh v0.3.2`. It writes `admaps-0.3.2.zip` (git-ignored). Files marked `export-ignore` in `.gitattributes` (this README, `bin/`) are left out.
 4. Publish: `gh release create v0.3.2 admaps-0.3.2.zip --prerelease --notes-file notes.md` (drop `--prerelease` for stable releases). The zip must be named `admaps-<version>.zip`; sites only install release zips, never tags or branches.
 
-**Update token:** a fine-grained GitHub personal access token, resource owner `adtrak-core`, access to `adtrak-maps` only, permission *Contents: read-only*. Renew it before it expires and release a version with the new token while the old one still works, or sites stop seeing updates and need the next zip uploading by hand.
+Changes to `main` go through a pull request; repository admins can bypass this.
+
+## Security
+
+Please report vulnerabilities privately using **Security → Report a vulnerability** on this repository, or email Adtrak, rather than in public. Don't include client details or site credentials in commits, release notes or pull requests: this repository is public.
 
 ## Licence
 
