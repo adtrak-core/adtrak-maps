@@ -183,6 +183,15 @@
 		tiles = R.tileLayer( tileConfig() ).addTo( map );
 	}
 
+	function setTint() {
+		var el = map.getContainer();
+		var tint = state.settings.tint || cfg.defaultTint;
+		el.classList.remove( 'admaps-map--tint-grey', 'admaps-map--tint-dark' );
+		if ( tint && tint !== 'none' ) {
+			el.classList.add( 'admaps-map--tint-' + tint );
+		}
+	}
+
 	function readGeometry( type, item, layer ) {
 		if ( type === 'polygons' ) {
 			var rings = layer.getLatLngs();
@@ -1030,6 +1039,9 @@
 		if ( key === 'tiles' ) {
 			setTiles();
 		}
+		if ( key === 'tint' ) {
+			setTint();
+		}
 		if ( key.indexOf( 'legend' ) === 0 ) {
 			refreshLegend();
 		}
@@ -1044,6 +1056,7 @@
 	/* ---------- boot ---------- */
 
 	setTiles();
+	setTint();
 	[ 'markers', 'circles', 'polygons' ].forEach( function ( type ) {
 		state[ type ].forEach( function ( item ) {
 			buildLayer( type, item );

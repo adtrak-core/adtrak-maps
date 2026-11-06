@@ -85,6 +85,10 @@ class Shortcode {
 		if ( '1' === (string) $style['theme_font'] ) {
 			$classes[] = 'admaps-map--theme-font';
 		}
+		$tint = Map_Data::resolve_tint( (string) ( $settings['tint'] ?? '' ) );
+		if ( 'none' !== $tint ) {
+			$classes[] = 'admaps-map--tint-' . $tint;
+		}
 		foreach ( preg_split( '/\s+/', (string) $atts['class'], -1, PREG_SPLIT_NO_EMPTY ) as $class ) {
 			$classes[] = sanitize_html_class( $class );
 		}

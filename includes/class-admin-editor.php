@@ -117,6 +117,7 @@ class Admin_Editor {
 				'data'         => $data,
 				'tiles'        => $providers,
 				'defaultTiles' => $site['default_tiles'],
+				'defaultTint'  => $site['default_tint'],
 				'itemDefaults' => array_merge(
 					$site['item_defaults'],
 					array(
@@ -251,6 +252,20 @@ class Admin_Editor {
 				</option>
 				<?php foreach ( $providers as $slug => $provider ) : ?>
 					<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $s['tiles'], $slug ); ?>><?php echo esc_html( $provider['label'] ); ?></option>
+				<?php endforeach; ?>
+			</select>
+		</p>
+		<p>
+			<label for="admaps-tint"><strong><?php esc_html_e( 'Map tint', 'admaps' ); ?></strong></label><br>
+			<select id="admaps-tint" name="admaps_settings[tint]" class="widefat" data-admaps-setting="tint">
+				<option value="" <?php selected( $s['tint'], '' ); ?>>
+					<?php
+					/* translators: %s: default tint name */
+					echo esc_html( sprintf( __( 'Site default (%s)', 'admaps' ), Map_Data::tint_labels()[ Settings::get()['default_tint'] ] ) );
+					?>
+				</option>
+				<?php foreach ( Map_Data::tint_labels() as $value => $label ) : ?>
+					<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $s['tint'], $value ); ?>><?php echo esc_html( $label ); ?></option>
 				<?php endforeach; ?>
 			</select>
 		</p>

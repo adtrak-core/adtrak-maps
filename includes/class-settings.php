@@ -42,6 +42,7 @@ class Settings {
 	public static function defaults(): array {
 		return array(
 			'default_tiles'       => 'osm',
+			'default_tint'        => 'none',
 			'default_height'      => '450px',
 			'default_unit'        => 'mi',
 			'default_radius'      => 5,
@@ -178,6 +179,7 @@ class Settings {
 			$tiles = 'osm';
 		}
 		$out['default_tiles'] = $tiles;
+		$out['default_tint']  = in_array( $raw['default_tint'] ?? '', Map_Data::TINTS, true ) ? $raw['default_tint'] : 'none';
 
 		$height                = Map_Data::sanitize_css_length( (string) ( $raw['default_height'] ?? '' ) );
 		$out['default_height'] = '' !== $height ? $height : '450px';
@@ -271,6 +273,17 @@ class Settings {
 									<?php endforeach; ?>
 								</select>
 								<p class="description"><?php esc_html_e( 'Used by maps set to "Site default". OpenStreetMap\'s tile servers are for light use only; for busy sites or a different look, add a keyed provider under Custom tiles.', 'admaps' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="admaps-default-tint"><?php esc_html_e( 'Map tint', 'admaps' ); ?></label></th>
+							<td>
+								<select id="admaps-default-tint" name="<?php echo esc_attr( $name ); ?>[default_tint]">
+									<?php foreach ( Map_Data::tint_labels() as $value => $label ) : ?>
+										<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $s['default_tint'], $value ); ?>><?php echo esc_html( $label ); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php esc_html_e( 'Recolours the map itself (not pins, areas or bubbles). Greyscale makes coloured items stand out; Dark suits dark websites.', 'admaps' ); ?></p>
 							</td>
 						</tr>
 						<tr>

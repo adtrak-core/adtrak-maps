@@ -178,3 +178,16 @@ img.admaps-legend__icon {
 .admaps-map.is-touch-hint .admaps-touch-hint {
 	opacity: 1;
 }
+
+/* Map tints: recolour the tiles only, so pins, areas and bubbles keep their colours */
+.admaps-map--tint-grey .leaflet-tile-pane {
+	filter: grayscale(1) brightness(1.04) contrast(0.92);
+}
+
+.admaps-map--tint-dark .leaflet-tile-pane {
+	filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.5);
+}
+
+.admaps-map--tint-dark.leaflet-container {
+	background: #1d2125;
+}

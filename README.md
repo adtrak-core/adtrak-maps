@@ -8,6 +8,7 @@ Lightweight Leaflet maps for client WordPress sites, built to replace Scribble M
 - Radius circles (miles, km or metres) and polygon coverage areas
 - Colours and opacities for everything, plus an optional legend
 - Optional clustering of nearby pins
+- OpenStreetMap maps with a normal, greyscale or dark tint, or your own tile provider
 - Site-wide appearance defaults with per-map and per-item overrides
 - JSON export/import between sites; KML/GeoJSON import
 - Leaflet loads only on pages that contain a map
@@ -34,7 +35,7 @@ Update checks are off in a git checkout (a folder containing `.git`), so a devel
    - **Draw area**: click to add corners; click the first corner to finish. Drag handles to reshape, right-click a corner to remove it.
    - **Search** an address, postcode or ZIP, then use **+ Pin** or **+ Radius** on a result.
 3. Select an item in the list to edit its label, colours, info bubble, legend visibility and (under **Bubble size**) bubble width. Pins can also add a **Get directions** link to their bubble. Use **← All items** to return to the list. Items without a label are listed by an editor-only name ("Pin 3", or the place name when added from search), which is never shown to visitors.
-4. Set height, map style, zoom behaviour, clustering and legend in the **Map settings** box. Use **Set start view** if *Fit to contents* is off.
+4. Set height, map style, tint, zoom behaviour, clustering and legend in the **Map settings** box. Use **Set start view** if *Fit to contents* is off.
 5. Publish, then copy the shortcode from the **Shortcode** box (or the Maps list).
 
 ### Shortcode
@@ -59,7 +60,7 @@ Draft maps are shown only to people who can edit them. A missing map renders not
 
 | Tab | Contents |
 |---|---|
-| General | Default map style (tile layer), default height for new maps, and the directions link text. |
+| General | Default map style (tile layer), map tint (normal, greyscale or dark), default height for new maps, and the directions link text. |
 | Appearance | Info bubble width, text size, padding, corner radius and colours; legend text size and colours; whether to use the theme's font. |
 | New item defaults | Starting colours, opacities, line width and radius for new items. After the first item, new items copy the previous item of the same type. |
 | Custom tiles | A keyed tile provider (MapTiler, Stadia, Mapbox…), which then appears as a map style. |

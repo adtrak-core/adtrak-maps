@@ -21,6 +21,30 @@ class Map_Data {
 	const MAX_POINTS     = 5000;
 
 	const LEGEND_POSITIONS = array( 'topright', 'topleft', 'bottomright', 'bottomleft' );
+	const TINTS            = array( 'none', 'grey', 'dark' );
+
+	/**
+	 * Tint labels for select fields.
+	 *
+	 * @return array
+	 */
+	public static function tint_labels(): array {
+		return array(
+			'none' => __( 'Normal', 'admaps' ),
+			'grey' => __( 'Greyscale', 'admaps' ),
+			'dark' => __( 'Dark', 'admaps' ),
+		);
+	}
+
+	/**
+	 * A map's tint, falling back to the site default.
+	 *
+	 * @param string $tint Map tint ('' = site default).
+	 * @return string
+	 */
+	public static function resolve_tint( string $tint ): string {
+		return in_array( $tint, self::TINTS, true ) ? $tint : Settings::get()['default_tint'];
+	}
 
 	/**
 	 * Default map settings.
@@ -31,6 +55,7 @@ class Map_Data {
 		return array(
 			'height'          => Settings::get()['default_height'],
 			'tiles'           => '',
+			'tint'            => '',
 			'center'          => array( 54.0, -2.5 ),
 			'zoom'            => 6,
 			'fit_bounds'      => true,
@@ -153,6 +178,10 @@ class Map_Data {
 		if ( isset( $raw['tiles'] ) ) {
 			$tiles        = sanitize_key( (string) $raw['tiles'] );
 			$out['tiles'] = array_key_exists( $tiles, Assets::tile_providers() ) ? $tiles : '';
+		}
+
+		if ( isset( $raw['tint'] ) ) {
+			$out['tint'] = in_array( $raw['tint'], self::TINTS, true ) ? $raw['tint'] : '';
 		}
 
 		if ( isset( $raw['center'] ) ) {
