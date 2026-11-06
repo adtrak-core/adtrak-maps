@@ -321,7 +321,7 @@ class Admin_Editor {
 		$overrides = count( array_filter( $style, 'strlen' ) );
 		$link      = admin_url( 'edit.php?post_type=' . Post_Type::NAME . '&page=admaps-settings#appearance' );
 		?>
-		<p class="admaps-appearance__intro">
+		<p class="admaps-tab-intro">
 			<?php
 			printf(
 				/* translators: %s: link to the settings page */
@@ -333,9 +333,7 @@ class Admin_Editor {
 			}
 			?>
 		</p>
-		<table class="form-table admaps-appearance" role="presentation">
-			<?php Appearance::render_fields( 'admaps_settings[style]', $style, true ); ?>
-		</table>
+		<?php Appearance::render_sections( 'admaps_settings[style]', $style, true, 'h3' ); ?>
 		<?php
 	}
 

@@ -323,19 +323,7 @@ class Settings {
 
 				<section class="admaps-tab-panel" data-admaps-panel="appearance">
 					<p class="admaps-tab-intro"><?php esc_html_e( 'The site-wide look of info bubbles and legends. Each map can override these in its Appearance box. To style maps from your theme instead, see Theme styling.', 'admaps' ); ?></p>
-					<?php
-					$group_intros = array(
-						'general' => array( __( 'Text', 'admaps' ), '' ),
-						'popup'   => array( __( 'Info bubbles', 'admaps' ), __( 'The pop-up shown when a visitor clicks a pin, radius or area.', 'admaps' ) ),
-						'legend'  => array( __( 'Legend', 'admaps' ), __( 'The key listing labelled items, when a map has it switched on.', 'admaps' ) ),
-					);
-					foreach ( $group_intros as $group => $heading ) :
-						self::section( $heading[0], $heading[1] );
-						?>
-						<table class="form-table admaps-appearance" role="presentation">
-							<?php Appearance::render_fields( $name . '[appearance]', $s['appearance'], false, $group ); ?>
-						</table>
-					<?php endforeach; ?>
+					<?php Appearance::render_sections( $name . '[appearance]', $s['appearance'], false ); ?>
 				</section>
 
 				<section class="admaps-tab-panel" data-admaps-panel="items">

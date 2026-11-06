@@ -116,10 +116,45 @@ class Appearance {
 	 */
 	public static function groups(): array {
 		return array(
-			'general' => __( 'General', 'admaps' ),
+			'general' => __( 'Text', 'admaps' ),
 			'popup'   => __( 'Info bubbles', 'admaps' ),
 			'legend'  => __( 'Legend', 'admaps' ),
 		);
+	}
+
+	/**
+	 * Group descriptions.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function group_intros(): array {
+		return array(
+			'general' => '',
+			'popup'   => __( 'The pop-up shown when a visitor clicks a pin, radius or area.', 'admaps' ),
+			'legend'  => __( 'The key listing labelled items, when a map has it switched on.', 'admaps' ),
+		);
+	}
+
+	/**
+	 * Render every group as a titled section with its own table.
+	 *
+	 * @param string $name     Input name prefix, e.g. admaps_settings[appearance].
+	 * @param array  $values   Current values.
+	 * @param bool   $override True for the per-map box (blank = site default).
+	 * @param string $tag      Heading tag: h2 on the settings page, h3 inside a meta box.
+	 */
+	public static function render_sections( string $name, array $values, bool $override, string $tag = 'h2' ): void {
+		$tag    = 'h3' === $tag ? 'h3' : 'h2';
+		$intros = self::group_intros();
+		foreach ( self::groups() as $group => $heading ) {
+			echo '<' . $tag . ' class="admaps-section-title">' . esc_html( $heading ) . '</' . $tag . '>';
+			if ( '' !== $intros[ $group ] ) {
+				echo '<p class="admaps-section-intro">' . esc_html( $intros[ $group ] ) . '</p>';
+			}
+			echo '<table class="form-table admaps-appearance" role="presentation">';
+			self::render_fields( $name, $values, $override, $group );
+			echo '</table>';
+		}
 	}
 
 	/**
@@ -235,66 +270,57 @@ class Appearance {
 	 * @param string $name     Input name prefix, e.g. admaps_settings[appearance].
 	 * @param array  $values   Current values.
 	 * @param bool   $override True for the per-map box (blank = site default).
-	 * @param string $only     Render just this group, without its heading row.
+	 * @param string $group    Group to render.
 	 */
-	public static function render_fields( string $name, array $values, bool $override, string $only = '' ): void {
+	private static function render_fields( string $name, array $values, bool $override, string $group ): void {
 		$defaults = Settings::get()['appearance'];
 		$fields   = self::fields();
 
-		foreach ( self::groups() as $group => $heading ) {
-			if ( '' !== $only && $only !== $group ) {
+		foreach ( $fields as $key => $field ) {
+			if ( $field['group'] !== $group ) {
 				continue;
 			}
-			if ( '' === $only ) {
-				echo '<tr class="admaps-appearance__group"><th colspan="2"><h3>' . esc_html( $heading ) . '</h3></th></tr>';
-			}
+			$id    = 'admaps-style-' . ( $override ? 'map-' : '' ) . $key;
+			$input = $name . '[' . $key . ']';
+			$value = isset( $values[ $key ] ) ? (string) $values[ $key ] : '';
+			$site  = (string) $defaults[ $key ];
 
-			foreach ( $fields as $key => $field ) {
-				if ( $field['group'] !== $group ) {
-					continue;
-				}
-				$id    = 'admaps-style-' . ( $override ? 'map-' : '' ) . $key;
-				$input = $name . '[' . $key . ']';
-				$value = isset( $values[ $key ] ) ? (string) $values[ $key ] : '';
-				$site  = (string) $defaults[ $key ];
+			echo '<tr><th scope="row"><label for="' . esc_attr( $id ) . '">' . esc_html( $field['label'] ) . '</label></th><td>';
 
-				echo '<tr><th scope="row"><label for="' . esc_attr( $id ) . '">' . esc_html( $field['label'] ) . '</label></th><td>';
-
-				if ( 'toggle' === $field['type'] ) {
-					if ( $override ) {
-						$options = array(
-							''  => sprintf( /* translators: %s: Yes/No */ __( 'Site default (%s)', 'admaps' ), '1' === $site ? __( 'Yes', 'admaps' ) : __( 'No', 'admaps' ) ),
-							'1' => __( 'Yes', 'admaps' ),
-							'0' => __( 'No', 'admaps' ),
-						);
-						echo '<select id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '">';
-						foreach ( $options as $opt => $label ) {
-							echo '<option value="' . esc_attr( $opt ) . '" ' . selected( $value, $opt, false ) . '>' . esc_html( $label ) . '</option>';
-						}
-						echo '</select>';
-					} else {
-						echo '<input type="hidden" name="' . esc_attr( $input ) . '" value="0">';
-						echo '<label><input type="checkbox" id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '" value="1" ' . checked( $value, '1', false ) . '> ' . esc_html__( 'Bubbles and legends use the site\'s font instead of Leaflet\'s', 'admaps' ) . '</label>';
+			if ( 'toggle' === $field['type'] ) {
+				if ( $override ) {
+					$options = array(
+						''  => sprintf( /* translators: %s: Yes/No */ __( 'Site default (%s)', 'admaps' ), '1' === $site ? __( 'Yes', 'admaps' ) : __( 'No', 'admaps' ) ),
+						'1' => __( 'Yes', 'admaps' ),
+						'0' => __( 'No', 'admaps' ),
+					);
+					echo '<select id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '">';
+					foreach ( $options as $opt => $label ) {
+						echo '<option value="' . esc_attr( $opt ) . '" ' . selected( $value, $opt, false ) . '>' . esc_html( $label ) . '</option>';
 					}
-				} elseif ( 'color' === $field['type'] ) {
-					$placeholder = '' !== $site ? $site : __( 'Map default', 'admaps' );
-					echo '<input type="text" class="admaps-color-field" id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '" value="' . esc_attr( $value ) . '"' . ( $override ? ' data-placeholder="' . esc_attr( $placeholder ) . '"' : '' ) . '>';
-					if ( $override ) {
-						echo '<p class="description">' . esc_html(
-							'' !== $site
-								/* translators: %s: colour value */
-								? sprintf( __( 'Blank uses the site default (%s).', 'admaps' ), $site )
-								: __( 'Blank uses the site default.', 'admaps' )
-						) . '</p>';
-					} elseif ( 'popup_link' === $key ) {
-						echo '<p class="description">' . esc_html__( 'Leave blank to keep Leaflet\'s default link colour.', 'admaps' ) . '</p>';
-					}
+					echo '</select>';
 				} else {
-					echo '<input type="number" step="any" class="small-text" id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '" value="' . esc_attr( $value ) . '"' . ( $override ? ' placeholder="' . esc_attr( $site ) . '"' : '' ) . '> px';
+					echo '<input type="hidden" name="' . esc_attr( $input ) . '" value="0">';
+					echo '<label><input type="checkbox" id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '" value="1" ' . checked( $value, '1', false ) . '> ' . esc_html__( 'Bubbles and legends use the site\'s font instead of Leaflet\'s', 'admaps' ) . '</label>';
 				}
-
-				echo '</td></tr>';
+			} elseif ( 'color' === $field['type'] ) {
+				$placeholder = '' !== $site ? $site : __( 'Map default', 'admaps' );
+				echo '<input type="text" class="admaps-color-field" id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '" value="' . esc_attr( $value ) . '"' . ( $override ? ' data-placeholder="' . esc_attr( $placeholder ) . '"' : '' ) . '>';
+				if ( $override ) {
+					echo '<p class="description">' . esc_html(
+						'' !== $site
+							/* translators: %s: colour value */
+							? sprintf( __( 'Blank uses the site default (%s).', 'admaps' ), $site )
+							: __( 'Blank uses the site default.', 'admaps' )
+					) . '</p>';
+				} elseif ( 'popup_link' === $key ) {
+					echo '<p class="description">' . esc_html__( 'Leave blank to keep Leaflet\'s default link colour.', 'admaps' ) . '</p>';
+				}
+			} else {
+				echo '<input type="number" step="any" class="small-text" id="' . esc_attr( $id ) . '" name="' . esc_attr( $input ) . '" value="' . esc_attr( $value ) . '"' . ( $override ? ' placeholder="' . esc_attr( $site ) . '"' : '' ) . '> px';
 			}
+
+			echo '</td></tr>';
 		}
 	}
 }

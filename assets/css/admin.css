@@ -438,19 +438,6 @@ fieldset.admaps-field label {
 	width: 100%;
 }
 
-.admaps-appearance__group th {
-	padding: 16px 0 0;
-}
-
-.admaps-appearance__group h3 {
-	margin: 0;
-	font-size: 14px;
-}
-
-.admaps-appearance tr.admaps-appearance__group:first-child th {
-	padding-top: 0;
-}
-
 #admaps-appearance .form-table th {
 	width: 180px;
 }
@@ -459,17 +446,29 @@ fieldset.admaps-field label {
 	max-width: 900px;
 }
 
-.admaps-settings .admaps-tab-intro {
+.admaps-settings .admaps-tab-intro,
+#admaps-appearance .admaps-tab-intro {
 	max-width: 720px;
 	margin: 20px 0 0;
 	font-size: 14px;
 }
 
-.admaps-settings .admaps-section-title {
+.admaps-settings .admaps-section-title,
+#admaps-appearance .admaps-section-title {
 	margin: 32px 0 4px;
 	padding-top: 24px;
 	border-top: 1px solid #dcdcde;
 	font-size: 1.3em;
+}
+
+#admaps-appearance .admaps-tab-intro {
+	margin-top: 12px;
+}
+
+#admaps-appearance .admaps-section-title {
+	margin-top: 24px;
+	padding-top: 20px;
+	font-size: 1.1em;
 }
 
 .admaps-settings .admaps-tab-panel > .admaps-section-title:first-child {
@@ -478,14 +477,17 @@ fieldset.admaps-field label {
 	border-top: 0;
 }
 
-.admaps-settings .admaps-section-intro {
+.admaps-settings .admaps-section-intro,
+#admaps-appearance .admaps-section-intro {
 	max-width: 720px;
 	margin: 0;
 	color: #646970;
 }
 
 .admaps-settings .admaps-section-title + .form-table,
-.admaps-settings .admaps-section-intro + .form-table {
+.admaps-settings .admaps-section-intro + .form-table,
+#admaps-appearance .admaps-section-title + .form-table,
+#admaps-appearance .admaps-section-intro + .form-table {
 	margin-top: 8px;
 }
 
