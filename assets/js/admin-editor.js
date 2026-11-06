@@ -73,6 +73,12 @@
 	var selected = null;
 	var drawingType = null;
 	var editorActive = false;
+	var previewPopup = null;
+	var previewTimer = null;
+	var bubblePreview = false;
+	try {
+		bubblePreview = window.localStorage.getItem( 'admapsBubblePreview' ) === '1';
+	} catch ( e ) {}
 	var legendCtl = null;
 	var noticeTimer = null;
 
@@ -214,6 +220,7 @@
 		readGeometry( type, item, layer );
 		if ( selected && selected.id === item.id ) {
 			updateFormGeometry( type, item );
+			refreshPreview();
 		}
 		sync();
 	}
@@ -362,6 +369,7 @@
 		markSelectedMarker();
 		renderList();
 		renderForm();
+		refreshPreview();
 		$panel.scrollTop( 0 );
 	}
 
@@ -508,7 +516,9 @@
 				field( 'Line width (px)', '<input type="number" min="0" max="20" data-field="weight" value="' + esc( item.weight ) + '">' );
 		}
 
-		html += '<div class="admaps-field"><label for="' + EDITOR_ID + '">Info bubble</label><textarea id="' + EDITOR_ID + '" rows="6"></textarea></div>';
+		html += '<div class="admaps-field"><div class="admaps-field__head"><label for="' + EDITOR_ID + '">Info bubble</label>' +
+			'<label class="admaps-preview-toggle"><input type="checkbox" class="admaps-bubble-preview"' + ( bubblePreview ? ' checked' : '' ) + '> ' + esc( i18n.bubblePreview ) + '</label></div>' +
+			'<textarea id="' + EDITOR_ID + '" rows="6"></textarea></div>';
 		if ( type === 'markers' ) {
 			html += '<p class="admaps-field admaps-field--check"><label><input type="checkbox" data-field="directions"' + ( item.directions ? ' checked' : '' ) + '> Add a "Get directions" link (Google Maps)</label></p>';
 		}
@@ -639,6 +649,7 @@
 			case 'popup_max':
 				item[ name ] = value > 0 ? Math.round( value ) : 0;
 				$form.find( '.admaps-advanced summary' ).text( 'Bubble size' + ( item.popup_min > 0 || item.popup_max > 0 ? ' (custom)' : '' ) );
+				refreshPreview();
 				sync();
 				return;
 			default:
@@ -677,8 +688,123 @@
 		if ( state.settings.legend ) {
 			refreshLegend();
 		}
+		refreshPreview();
 		sync();
 	}
+
+	/* ---------- bubble preview ---------- */
+
+	/**
+	 * Bubble HTML as the live map shows it (shortcodes aside, which only run on the front end).
+	 */
+	function bubbleHtml( type, item ) {
+		var html = item.popup || '';
+		if ( html.trim() && window.wp && window.wp.editor && window.wp.editor.autop ) {
+			html = window.wp.editor.autop( html );
+		}
+		if ( type === 'markers' && item.directions ) {
+			html += R.directionsLink( item, cfg );
+		}
+		return html;
+	}
+
+	function closePreview() {
+		if ( previewPopup ) {
+			var popup = previewPopup;
+			previewPopup = null;
+			map.closePopup( popup );
+		}
+	}
+
+	function refreshPreview() {
+		var item = current();
+		var layer = item && layers[ item.id ];
+		if ( ! bubblePreview || ! layer ) {
+			closePreview();
+			return;
+		}
+		readEditor();
+		var type = selected.type;
+		var html = bubbleHtml( type, item ) || '<p class="admaps-preview-empty">' + esc( i18n.bubbleEmpty ) + '</p>';
+		var opts = R.popupOptions( item, { minWidth: POPUP_SIZE.min, maxWidth: POPUP_SIZE.max } );
+		var room = Math.max( 120, map.getSize().x - 60 );
+		opts.maxWidth = Math.min( opts.maxWidth, room );
+		opts.minWidth = Math.min( opts.minWidth, opts.maxWidth );
+		var latlng = type === 'polygons' ? layer.getBounds().getCenter() : layer.getLatLng();
+
+		if ( previewPopup && previewPopup._source !== layer ) {
+			closePreview();
+		}
+		if ( ! previewPopup ) {
+			previewPopup = L.popup( $.extend( opts, { autoClose: false, closeOnClick: false, className: 'admaps-preview-popup' } ), layer );
+			previewPopup.on( 'remove', function () {
+				// Closed with its own × button: switch the preview off.
+				if ( previewPopup === this ) {
+					previewPopup = null;
+					setBubblePreview( false );
+				}
+			} );
+			previewPopup.setLatLng( latlng ).setContent( html ).openOn( map );
+			return;
+		}
+		previewPopup.options.minWidth = opts.minWidth;
+		previewPopup.options.maxWidth = opts.maxWidth;
+		previewPopup.setLatLng( latlng ).setContent( html );
+	}
+
+	function schedulePreview() {
+		window.clearTimeout( previewTimer );
+		previewTimer = window.setTimeout( refreshPreview, 200 );
+	}
+
+	function setBubblePreview( on ) {
+		bubblePreview = on;
+		$form.find( '.admaps-bubble-preview' ).prop( 'checked', on );
+		try {
+			window.localStorage.setItem( 'admapsBubblePreview', on ? '1' : '0' );
+		} catch ( e ) {}
+		refreshPreview();
+	}
+
+	$form.on( 'change', '.admaps-bubble-preview', function () {
+		setBubblePreview( this.checked );
+	} );
+	$form.on( 'input', '#' + EDITOR_ID, schedulePreview );
+	$( document ).on( 'tinymce-editor-init', function ( event, editor ) {
+		if ( editor && editor.id === EDITOR_ID ) {
+			editor.on( 'input keyup change undo redo ExecCommand', schedulePreview );
+		}
+	} );
+
+	/**
+	 * The map's Appearance box, applied live so the preview matches the saved result.
+	 */
+	function applyAppearance() {
+		var el = map.getContainer();
+		var site = cfg.appearance.site;
+		var value = function ( key ) {
+			var $input = $( '[name="admaps_settings[style][' + key + ']"]' );
+			var v = $input.length ? String( $input.val() ) : '';
+			return v !== '' ? v : String( site[ key ] == null ? '' : site[ key ] );
+		};
+		Object.keys( cfg.appearance.vars ).forEach( function ( key ) {
+			var v = value( key );
+			var px = cfg.appearance.px.indexOf( key ) !== -1;
+			if ( v === '' || ( px && isNaN( parseFloat( v ) ) ) ) {
+				el.style.removeProperty( cfg.appearance.vars[ key ] );
+			} else {
+				el.style.setProperty( cfg.appearance.vars[ key ], px ? parseFloat( v ) + 'px' : v );
+			}
+		} );
+		el.classList.toggle( 'admaps-map--theme-font', value( 'theme_font' ) === '1' );
+		POPUP_SIZE = {
+			min: parseInt( value( 'popup_min' ), 10 ) || POPUP_SIZE.min,
+			max: parseInt( value( 'popup_max' ), 10 ) || POPUP_SIZE.max
+		};
+		schedulePreview();
+	}
+
+	$( '#admaps-appearance' ).on( 'input change', 'input, select', applyAppearance );
 
 	$form.on( 'input change', '[data-field]', function () {
 		// Colour fields are handled by the wpColorPicker change callback.
@@ -699,7 +825,14 @@
 		setField( this.getAttribute( 'data-field' ), value );
 	} );
 
-	$( '#admaps-appearance .admaps-color-field' ).wpColorPicker();
+	$( '#admaps-appearance .admaps-color-field' ).wpColorPicker( {
+		change: function () {
+			window.setTimeout( applyAppearance );
+		},
+		clear: function () {
+			window.setTimeout( applyAppearance );
+		}
+	} );
 
 	$list.on( 'click', '.admaps-item', function () {
 		var type = this.getAttribute( 'data-type' );

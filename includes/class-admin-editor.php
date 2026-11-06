@@ -125,6 +125,12 @@ class Admin_Editor {
 						'unit'   => $site['default_unit'],
 					)
 				),
+				'appearance'   => array(
+					'site'   => $site['appearance'],
+					'vars'   => Appearance::css_var_names(),
+					'px'     => array_keys( wp_list_filter( Appearance::fields(), array( 'type' => 'px' ) ) ),
+				),
+				'labels'       => array( 'directions' => $site['directions_text'] ),
 				'popupSize'    => array(
 					'min' => (int) $style['popup_min'],
 					'max' => (int) $style['popup_max'],
@@ -136,6 +142,8 @@ class Admin_Editor {
 					'circle'          => __( 'Radius', 'admaps' ),
 					'polygon'         => __( 'Area', 'admaps' ),
 					'allItems'        => __( 'All items (%d)', 'admaps' ),
+					'bubblePreview'   => __( 'Preview on map', 'admaps' ),
+					'bubbleEmpty'     => __( 'This bubble is empty, so it won\'t open on the live map.', 'admaps' ),
 					'labelPlaceholder' => __( 'Shown on hover and in the legend', 'admaps' ),
 					'noItems'         => __( 'Nothing on this map yet. Use the buttons above to add a pin, radius or area.', 'admaps' ),
 					'deleteConfirm'   => __( 'Delete this item?', 'admaps' ),
@@ -167,6 +175,7 @@ class Admin_Editor {
 	 * @param \WP_Post $post Post.
 	 */
 	public static function render_editor( \WP_Post $post ): void {
+		$style = Appearance::resolve( Map_Data::get( $post->ID )['settings']['style'] );
 		wp_nonce_field( self::NONCE, self::NONCE );
 		?>
 		<div class="admaps-editor" id="admaps-editor">
@@ -190,7 +199,7 @@ class Admin_Editor {
 			</div>
 			<div class="admaps-notice" id="admaps-notice" role="status" aria-live="polite" hidden></div>
 			<div class="admaps-editor__body">
-				<div class="admaps-editor__map" id="admaps-editor-map"></div>
+				<div class="admaps-editor__map admaps-map<?php echo '1' === (string) $style['theme_font'] ? ' admaps-map--theme-font' : ''; ?>" id="admaps-editor-map" style="<?php echo esc_attr( Appearance::css_vars( $style ) ); ?>"></div>
 				<div class="admaps-panel">
 					<ul class="admaps-items" id="admaps-items"></ul>
 					<div class="admaps-item-form" id="admaps-item-form"></div>

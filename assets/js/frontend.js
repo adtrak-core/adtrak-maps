@@ -392,6 +392,8 @@
 		circleLayer: circleLayer,
 		polygonLayer: polygonLayer,
 		itemBounds: itemBounds,
+		popupOptions: popupOptions,
+		directionsLink: directionsLink,
 		legendControl: legendControl,
 		createMap: createMap,
 		init: init,

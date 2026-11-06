@@ -199,7 +199,24 @@ class Appearance {
 	 * @return string
 	 */
 	public static function css_vars( array $style ): string {
-		$map = array(
+		$fields = self::fields();
+		$css    = '';
+		foreach ( self::css_var_names() as $key => $var ) {
+			if ( ! isset( $style[ $key ] ) || '' === $style[ $key ] ) {
+				continue;
+			}
+			$css .= $var . ':' . $style[ $key ] . ( 'px' === $fields[ $key ]['type'] ? 'px' : '' ) . ';';
+		}
+		return $css;
+	}
+
+	/**
+	 * Custom property for each field that has one.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function css_var_names(): array {
+		return array(
 			'popup_font_size'  => '--admaps-popup-size',
 			'popup_padding'    => '--admaps-popup-padding',
 			'popup_radius'     => '--admaps-popup-radius',
@@ -210,15 +227,6 @@ class Appearance {
 			'legend_bg'        => '--admaps-legend-bg',
 			'legend_text'      => '--admaps-legend-text',
 		);
-		$fields = self::fields();
-		$css    = '';
-		foreach ( $map as $key => $var ) {
-			if ( ! isset( $style[ $key ] ) || '' === $style[ $key ] ) {
-				continue;
-			}
-			$css .= $var . ':' . $style[ $key ] . ( 'px' === $fields[ $key ]['type'] ? 'px' : '' ) . ';';
-		}
-		return $css;
 	}
 
 	/**

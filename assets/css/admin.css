@@ -301,6 +301,32 @@
 	font-weight: 400;
 }
 
+.admaps-field__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 3px;
+}
+
+.admaps-field__head > label:first-child {
+	font-weight: 600;
+}
+
+.admaps-preview-toggle {
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.admaps-preview-toggle input[type="checkbox"] {
+	margin: 0 2px 0 0;
+}
+
+.admaps-editor__map .admaps-preview-empty {
+	font-style: italic;
+	opacity: 0.7;
+}
+
 fieldset.admaps-field label {
 	margin-right: 10px;
 }
