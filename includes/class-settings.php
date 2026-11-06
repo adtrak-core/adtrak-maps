@@ -53,6 +53,7 @@ class Settings {
 			'custom_max_zoom'     => 19,
 			'delete_on_uninstall' => false,
 			'two_finger_touch'    => true,
+			'prerelease_updates'  => false,
 			'appearance'          => Appearance::defaults(),
 			'item_defaults'       => self::item_defaults(),
 		);
@@ -170,6 +171,7 @@ class Settings {
 		$out['custom_max_zoom']     = max( 1, min( 22, (int) ( $raw['custom_max_zoom'] ?? 19 ) ) );
 		$out['delete_on_uninstall'] = ! empty( $raw['delete_on_uninstall'] );
 		$out['two_finger_touch']    = ! empty( $raw['two_finger_touch'] );
+		$out['prerelease_updates']  = ! empty( $raw['prerelease_updates'] );
 
 		$tiles = sanitize_key( (string) ( $raw['default_tiles'] ?? 'osm' ) );
 		if ( 'custom' === $tiles && '' === $out['custom_url'] ) {
@@ -377,6 +379,13 @@ class Settings {
 							<td>
 								<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[two_finger_touch]" value="1" <?php checked( $s['two_finger_touch'] ); ?>> <?php esc_html_e( 'Use two fingers to move the map on phones and tablets', 'admaps' ); ?></label>
 								<p class="description"><?php esc_html_e( 'One finger scrolls the page past the map, so visitors don\'t get stuck. Tapping pins and areas still opens their bubbles.', 'admaps' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Updates', 'admaps' ); ?></th>
+							<td>
+								<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[prerelease_updates]" value="1" <?php checked( $s['prerelease_updates'] ); ?>> <?php esc_html_e( 'Offer pre-release (test) versions', 'admaps' ); ?></label>
+								<p class="description"><?php esc_html_e( 'For test sites only. Client sites should only get stable releases.', 'admaps' ); ?></p>
 							</td>
 						</tr>
 						<tr>

@@ -9,6 +9,7 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       admaps
+ * Update URI:        https://github.com/adtrak-core/adtrak-maps
  *
  * @package Admaps
  */
@@ -28,6 +29,7 @@ require_once ADMAPS_PATH . 'includes/class-admin-editor.php';
 require_once ADMAPS_PATH . 'includes/class-import-export.php';
 require_once ADMAPS_PATH . 'includes/class-settings.php';
 require_once ADMAPS_PATH . 'includes/class-appearance.php';
+require_once ADMAPS_PATH . 'includes/class-updater.php';
 
 add_action(
 	'plugins_loaded',
@@ -37,6 +39,7 @@ add_action(
 		\Admaps\Post_Type::init();
 		\Admaps\Assets::init();
 		\Admaps\Shortcode::init();
+		\Admaps\Updater::init();
 
 		if ( is_admin() ) {
 			\Admaps\Admin_Editor::init();

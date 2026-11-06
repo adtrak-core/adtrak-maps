@@ -17,7 +17,13 @@ Lightweight Leaflet maps for client WordPress sites, built to replace Scribble M
 
 ## Installation
 
-Download a release zip (or zip the `admaps` folder) and upload it via **Plugins → Add New → Upload Plugin**, then activate. To update, upload the new zip and choose *Replace current with uploaded*. Maps and settings are kept.
+Download a release zip (or zip the `admaps` folder) and upload it via **Plugins → Add New → Upload Plugin**, then activate. Maps and settings are kept through updates.
+
+### Updates
+
+Sites installed from a release zip check this repository's GitHub releases and offer new versions on the **Plugins** and **Updates** screens like any other plugin (including auto-updates). Only stable releases are offered; test sites can also get pre-releases by ticking **Settings → Advanced → Updates**.
+
+The repository is private, so release zips include a read-only GitHub token (`update-token.php`, added by the build script and never committed). Defining `ADMAPS_UPDATE_TOKEN` in `wp-config.php` overrides it. Without a token, as in a git checkout, update checks are off. Updates can always be installed by uploading the zip and choosing *Replace current with uploaded*.
 
 ## Using it
 
@@ -145,10 +151,13 @@ includes/
   class-shortcode.php        [admaps] output
   class-assets.php           Script/style registration and tile providers
   class-import-export.php    JSON export/import
+  class-updater.php          Updates from GitHub releases
 assets/js/frontend.js        Front-end renderer (also used by the admin preview)
 assets/js/admin-editor.js    Map editor
 assets/js/import.js          KML/GeoJSON parser
 assets/vendor/               Leaflet 1.9.4, Leaflet.markercluster 1.5.3, Leaflet-Geoman free 2.20.6
+vendor/plugin-update-checker/  Plugin Update Checker 5.7
+bin/build-release.sh         Builds the release zip
 uninstall.php                Optional data removal
 ```
 
@@ -160,13 +169,13 @@ There is no build step. Edit the files directly. Code must stay PHP 7.4 compatib
 
 Versions follow [semantic versioning](https://semver.org/); `0.x` while in testing. To release:
 
-1. Update `Version:` and `ADMAPS_VERSION` in `admaps.php`.
-2. Commit, then tag: `git tag -a v0.2.0 -m "…" && git push --follow-tags`.
-3. Build the zip from the `plugins` directory:
-   ```bash
-   zip -r admaps-0.2.0.zip admaps -x "*.DS_Store" "admaps/.git/*" "admaps/.gitignore" "admaps/README.md"
-   ```
+1. Update `Version:` and `ADMAPS_VERSION` in `admaps.php`, commit and push.
+2. Tag: `git tag -a v0.3.2 -m "v0.3.2" && git push origin v0.3.2`.
+3. Build the zip: `bin/build-release.sh v0.3.2`. It writes `admaps-0.3.2.zip` (git-ignored) and adds the update token from `ADMAPS_UPDATE_TOKEN` or `~/.config/admaps/update-token`. Files marked `export-ignore` in `.gitattributes` (this README, `bin/`) are left out.
+4. Publish: `gh release create v0.3.2 admaps-0.3.2.zip --prerelease --notes-file notes.md` (drop `--prerelease` for stable releases). The zip must be named `admaps-<version>.zip`; sites only install release zips, never tags or branches.
+
+**Update token:** a fine-grained GitHub personal access token, resource owner `adtrak-core`, access to `adtrak-maps` only, permission *Contents: read-only*. Renew it before it expires and release a version with the new token while the old one still works, or sites stop seeing updates and need the next zip uploading by hand.
 
 ## Licence
 
-GPL-2.0-or-later. Bundled libraries keep their own licences (BSD-2-Clause for Leaflet, MIT for Leaflet.markercluster and Leaflet-Geoman); see each folder in `assets/vendor/`.
+GPL-2.0-or-later. Bundled libraries keep their own licences (BSD-2-Clause for Leaflet, MIT for Leaflet.markercluster and Leaflet-Geoman); see each folder in `assets/vendor/`, and MIT for Plugin Update Checker in `vendor/`.
