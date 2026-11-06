@@ -66,6 +66,7 @@ Draft maps are shown only to people who can edit them. A missing map renders not
 | Custom tiles | A keyed tile provider (MapTiler, Stadia, Mapbox…), which then appears as a map style. |
 | Advanced | Two-finger map movement on touch screens (on by default). Delete all maps and settings when the plugin is deleted (off by default). |
 | Import / Export | Export all maps as JSON, or import maps from another site. |
+| Theme styling | Reference for theme developers: every class, CSS custom property and the `admaps:ready` event, with Tailwind examples. |
 
 Each map has an **Appearance** box (below the editor, collapsed by default) to override any of these for that map. Blank fields use the site default. Each pin and shape can also override its bubble width under **Bubble size**. Bubbles always shrink to fit small maps.
 
@@ -87,7 +88,9 @@ Appearance settings are output as CSS custom properties on `.admaps-map`, so a t
 }
 ```
 
-Values set in the admin are applied inline, so target `.admaps-map` with higher specificity (or `!important`) if the theme must win. When *Use the theme's font* is on, the container gets `.admaps-map--theme-font`.
+Only values that differ from the built-in defaults are applied inline, so a theme's values apply wherever the settings are left at their defaults, and anything changed in the admin takes priority. When *Use the theme's font* is on, the container gets `.admaps-map--theme-font`.
+
+The **Theme styling** tab in Settings lists every class, with Tailwind examples. Keep theme rules outside `@layer` (Leaflet's and the plugin's CSS aren't layered, so layered rules lose to them), and start selectors with `body` to beat the plugin's equivalents whichever stylesheet loads last.
 
 ## Import and export
 

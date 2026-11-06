@@ -230,6 +230,19 @@ class Settings {
 	}
 
 	/**
+	 * A section heading within a tab.
+	 *
+	 * @param string $title Heading.
+	 * @param string $intro Optional short description.
+	 */
+	private static function section( string $title, string $intro = '' ): void {
+		echo '<h2 class="admaps-section-title">' . esc_html( $title ) . '</h2>';
+		if ( '' !== $intro ) {
+			echo '<p class="admaps-section-intro">' . esc_html( $intro ) . '</p>';
+		}
+	}
+
+	/**
 	 * Render the page.
 	 */
 	public static function render(): void {
@@ -247,6 +260,7 @@ class Settings {
 			'tiles'         => __( 'Custom tiles', 'admaps' ),
 			'advanced'      => __( 'Advanced', 'admaps' ),
 			'import-export' => __( 'Import / Export', 'admaps' ),
+			'styling'       => __( 'Theme styling', 'admaps' ),
 		);
 		?>
 		<div class="wrap admaps-settings">
@@ -263,6 +277,7 @@ class Settings {
 				<?php settings_fields( 'admaps_settings' ); ?>
 
 				<section class="admaps-tab-panel" data-admaps-panel="general">
+					<?php self::section( __( 'Maps', 'admaps' ), __( 'Defaults for every map. Each map can change these in its Map settings box.', 'admaps' ) ); ?>
 					<table class="form-table" role="presentation">
 						<tr>
 							<th scope="row"><label for="admaps-default-tiles"><?php esc_html_e( 'Map style', 'admaps' ); ?></label></th>
@@ -293,25 +308,39 @@ class Settings {
 								<p class="description"><?php esc_html_e( 'Used by new maps. px, vh, rem, em or %.', 'admaps' ); ?></p>
 							</td>
 						</tr>
+					</table>
+
+					<?php self::section( __( 'Directions link', 'admaps' ), __( 'Pins can show a link that opens Google Maps directions to the pin in a new tab (or the Google Maps app on phones).', 'admaps' ) ); ?>
+					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="admaps-directions-text"><?php esc_html_e( 'Directions link text', 'admaps' ); ?></label></th>
+							<th scope="row"><label for="admaps-directions-text"><?php esc_html_e( 'Link text', 'admaps' ); ?></label></th>
 							<td>
 								<input type="text" class="regular-text" id="admaps-directions-text" name="<?php echo esc_attr( $name ); ?>[directions_text]" value="<?php echo esc_attr( $s['directions_text'] ); ?>">
-								<p class="description"><?php esc_html_e( 'Used on pins with the directions link ticked. Opens Google Maps directions to the pin in a new tab (or the Google Maps app on phones).', 'admaps' ); ?></p>
 							</td>
 						</tr>
 					</table>
 				</section>
 
 				<section class="admaps-tab-panel" data-admaps-panel="appearance">
-					<p><?php esc_html_e( 'Site-wide look of info bubbles and legends. Each map can override these in its Appearance box. Themes can also override the CSS custom properties (--admaps-popup-bg etc.) on .admaps-map.', 'admaps' ); ?></p>
-					<table class="form-table admaps-appearance" role="presentation">
-						<?php Appearance::render_fields( $name . '[appearance]', $s['appearance'], false ); ?>
-					</table>
+					<p class="admaps-tab-intro"><?php esc_html_e( 'The site-wide look of info bubbles and legends. Each map can override these in its Appearance box. To style maps from your theme instead, see Theme styling.', 'admaps' ); ?></p>
+					<?php
+					$group_intros = array(
+						'general' => array( __( 'Text', 'admaps' ), '' ),
+						'popup'   => array( __( 'Info bubbles', 'admaps' ), __( 'The pop-up shown when a visitor clicks a pin, radius or area.', 'admaps' ) ),
+						'legend'  => array( __( 'Legend', 'admaps' ), __( 'The key listing labelled items, when a map has it switched on.', 'admaps' ) ),
+					);
+					foreach ( $group_intros as $group => $heading ) :
+						self::section( $heading[0], $heading[1] );
+						?>
+						<table class="form-table admaps-appearance" role="presentation">
+							<?php Appearance::render_fields( $name . '[appearance]', $s['appearance'], false, $group ); ?>
+						</table>
+					<?php endforeach; ?>
 				</section>
 
 				<section class="admaps-tab-panel" data-admaps-panel="items">
-					<p><?php esc_html_e( 'Starting styles for newly added pins, radii and areas. After the first item, new items copy the style of the previous one of the same type.', 'admaps' ); ?></p>
+					<p class="admaps-tab-intro"><?php esc_html_e( 'Starting styles for newly added pins, radii and areas. After the first item, new items copy the style of the previous one of the same type.', 'admaps' ); ?></p>
+					<?php self::section( __( 'Pins', 'admaps' ) ); ?>
 					<table class="form-table" role="presentation">
 						<tr>
 							<th scope="row"><label for="admaps-item-pin"><?php esc_html_e( 'Pin colour', 'admaps' ); ?></label></th>
@@ -321,12 +350,27 @@ class Settings {
 							<th scope="row"><?php esc_html_e( 'Directions link', 'admaps' ); ?></th>
 							<td><label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[item_defaults][directions]" value="1" <?php checked( $items['directions'] ); ?>> <?php esc_html_e( 'Add a directions link to new pins', 'admaps' ); ?></label></td>
 						</tr>
+					</table>
+
+					<?php self::section( __( 'Radii and areas', 'admaps' ) ); ?>
+					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="admaps-item-fill"><?php esc_html_e( 'Area fill colour', 'admaps' ); ?></label></th>
+							<th scope="row"><label for="admaps-default-radius"><?php esc_html_e( 'Radius size', 'admaps' ); ?></label></th>
+							<td>
+								<input type="number" step="any" class="small-text" id="admaps-default-radius" name="<?php echo esc_attr( $name ); ?>[default_radius]" value="<?php echo esc_attr( (string) $s['default_radius'] ); ?>">
+								<select name="<?php echo esc_attr( $name ); ?>[default_unit]" aria-label="<?php esc_attr_e( 'Radius unit', 'admaps' ); ?>">
+									<option value="mi" <?php selected( $s['default_unit'], 'mi' ); ?>><?php esc_html_e( 'miles', 'admaps' ); ?></option>
+									<option value="km" <?php selected( $s['default_unit'], 'km' ); ?>><?php esc_html_e( 'km', 'admaps' ); ?></option>
+									<option value="m" <?php selected( $s['default_unit'], 'm' ); ?>><?php esc_html_e( 'metres', 'admaps' ); ?></option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="admaps-item-fill"><?php esc_html_e( 'Fill colour', 'admaps' ); ?></label></th>
 							<td><input type="text" class="admaps-color-field" id="admaps-item-fill" name="<?php echo esc_attr( $name ); ?>[item_defaults][fill]" value="<?php echo esc_attr( $items['fill'] ); ?>"></td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="admaps-item-fill-opacity"><?php esc_html_e( 'Area fill opacity', 'admaps' ); ?></label></th>
+							<th scope="row"><label for="admaps-item-fill-opacity"><?php esc_html_e( 'Fill opacity', 'admaps' ); ?></label></th>
 							<td><input type="number" step="any" class="small-text" id="admaps-item-fill-opacity" name="<?php echo esc_attr( $name ); ?>[item_defaults][fill_opacity]" value="<?php echo esc_attr( (string) $items['fill_opacity'] ); ?>"> <span class="description"><?php esc_html_e( '0 to 1', 'admaps' ); ?></span></td>
 						</tr>
 						<tr>
@@ -341,22 +385,11 @@ class Settings {
 							<th scope="row"><label for="admaps-item-weight"><?php esc_html_e( 'Line width', 'admaps' ); ?></label></th>
 							<td><input type="number" step="any" class="small-text" id="admaps-item-weight" name="<?php echo esc_attr( $name ); ?>[item_defaults][weight]" value="<?php echo esc_attr( (string) $items['weight'] ); ?>"> px</td>
 						</tr>
-						<tr>
-							<th scope="row"><label for="admaps-default-radius"><?php esc_html_e( 'Radius', 'admaps' ); ?></label></th>
-							<td>
-								<input type="number" step="any" class="small-text" id="admaps-default-radius" name="<?php echo esc_attr( $name ); ?>[default_radius]" value="<?php echo esc_attr( (string) $s['default_radius'] ); ?>">
-								<select name="<?php echo esc_attr( $name ); ?>[default_unit]" aria-label="<?php esc_attr_e( 'Radius unit', 'admaps' ); ?>">
-									<option value="mi" <?php selected( $s['default_unit'], 'mi' ); ?>><?php esc_html_e( 'miles', 'admaps' ); ?></option>
-									<option value="km" <?php selected( $s['default_unit'], 'km' ); ?>><?php esc_html_e( 'km', 'admaps' ); ?></option>
-									<option value="m" <?php selected( $s['default_unit'], 'm' ); ?>><?php esc_html_e( 'metres', 'admaps' ); ?></option>
-								</select>
-							</td>
-						</tr>
 					</table>
 				</section>
 
 				<section class="admaps-tab-panel" data-admaps-panel="tiles">
-					<p><?php esc_html_e( 'Use this for a keyed provider such as MapTiler, Stadia Maps or Mapbox. Include the API key in the URL. Once saved it appears as a map style.', 'admaps' ); ?></p>
+					<?php self::section( __( 'Custom tile provider', 'admaps' ), __( 'Use this for a keyed provider such as MapTiler, Stadia Maps or Mapbox. Include the API key in the URL. Once saved it appears as a map style.', 'admaps' ) ); ?>
 					<table class="form-table" role="presentation">
 						<tr>
 							<th scope="row"><label for="admaps-custom-label"><?php esc_html_e( 'Name', 'admaps' ); ?></label></th>
@@ -386,6 +419,7 @@ class Settings {
 				</section>
 
 				<section class="admaps-tab-panel" data-admaps-panel="advanced">
+					<?php self::section( __( 'Phones and tablets', 'admaps' ) ); ?>
 					<table class="form-table" role="presentation">
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Touch screens', 'admaps' ); ?></th>
@@ -394,13 +428,21 @@ class Settings {
 								<p class="description"><?php esc_html_e( 'One finger scrolls the page past the map, so visitors don\'t get stuck. Tapping pins and areas still opens their bubbles.', 'admaps' ); ?></p>
 							</td>
 						</tr>
+					</table>
+
+					<?php self::section( __( 'Updates', 'admaps' ) ); ?>
+					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><?php esc_html_e( 'Updates', 'admaps' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Pre-releases', 'admaps' ); ?></th>
 							<td>
 								<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[prerelease_updates]" value="1" <?php checked( $s['prerelease_updates'] ); ?>> <?php esc_html_e( 'Offer pre-release (test) versions', 'admaps' ); ?></label>
 								<p class="description"><?php esc_html_e( 'For test sites only. Client sites should only get stable releases.', 'admaps' ); ?></p>
 							</td>
 						</tr>
+					</table>
+
+					<?php self::section( __( 'Uninstalling', 'admaps' ) ); ?>
+					<table class="form-table" role="presentation">
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Remove data', 'admaps' ); ?></th>
 							<td><label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[delete_on_uninstall]" value="1" <?php checked( $s['delete_on_uninstall'] ); ?>> <?php esc_html_e( 'Delete all maps and settings when the plugin is deleted', 'admaps' ); ?></label></td>
@@ -412,6 +454,7 @@ class Settings {
 			</form>
 
 			<?php Import_Export::render_panel(); ?>
+			<?php Style_Reference::render_panel(); ?>
 		</div>
 		<?php
 	}

@@ -202,7 +202,7 @@ class Appearance {
 		$fields = self::fields();
 		$css    = '';
 		foreach ( self::css_var_names() as $key => $var ) {
-			if ( ! isset( $style[ $key ] ) || '' === $style[ $key ] ) {
+			if ( ! isset( $style[ $key ] ) || '' === $style[ $key ] || (string) $style[ $key ] === (string) $fields[ $key ]['default'] ) {
 				continue;
 			}
 			$css .= $var . ':' . $style[ $key ] . ( 'px' === $fields[ $key ]['type'] ? 'px' : '' ) . ';';
@@ -235,13 +235,19 @@ class Appearance {
 	 * @param string $name     Input name prefix, e.g. admaps_settings[appearance].
 	 * @param array  $values   Current values.
 	 * @param bool   $override True for the per-map box (blank = site default).
+	 * @param string $only     Render just this group, without its heading row.
 	 */
-	public static function render_fields( string $name, array $values, bool $override ): void {
+	public static function render_fields( string $name, array $values, bool $override, string $only = '' ): void {
 		$defaults = Settings::get()['appearance'];
 		$fields   = self::fields();
 
 		foreach ( self::groups() as $group => $heading ) {
-			echo '<tr class="admaps-appearance__group"><th colspan="2"><h3>' . esc_html( $heading ) . '</h3></th></tr>';
+			if ( '' !== $only && $only !== $group ) {
+				continue;
+			}
+			if ( '' === $only ) {
+				echo '<tr class="admaps-appearance__group"><th colspan="2"><h3>' . esc_html( $heading ) . '</h3></th></tr>';
+			}
 
 			foreach ( $fields as $key => $field ) {
 				if ( $field['group'] !== $group ) {

@@ -28,6 +28,7 @@ require_once ADMAPS_PATH . 'includes/class-shortcode.php';
 require_once ADMAPS_PATH . 'includes/class-admin-editor.php';
 require_once ADMAPS_PATH . 'includes/class-import-export.php';
 require_once ADMAPS_PATH . 'includes/class-settings.php';
+require_once ADMAPS_PATH . 'includes/class-style-reference.php';
 require_once ADMAPS_PATH . 'includes/class-appearance.php';
 require_once ADMAPS_PATH . 'includes/class-updater.php';
 

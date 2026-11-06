@@ -447,7 +447,7 @@ fieldset.admaps-field label {
 	font-size: 14px;
 }
 
-.admaps-appearance tr:first-child th {
+.admaps-appearance tr.admaps-appearance__group:first-child th {
 	padding-top: 0;
 }
 
@@ -459,8 +459,79 @@ fieldset.admaps-field label {
 	max-width: 900px;
 }
 
-.admaps-settings .admaps-tab-panel > p:first-child {
+.admaps-settings .admaps-tab-intro {
+	max-width: 720px;
+	margin: 20px 0 0;
+	font-size: 14px;
+}
+
+.admaps-settings .admaps-section-title {
+	margin: 32px 0 4px;
+	padding-top: 24px;
+	border-top: 1px solid #dcdcde;
+	font-size: 1.3em;
+}
+
+.admaps-settings .admaps-tab-panel > .admaps-section-title:first-child {
+	margin-top: 20px;
+	padding-top: 0;
+	border-top: 0;
+}
+
+.admaps-settings .admaps-section-intro {
+	max-width: 720px;
+	margin: 0;
+	color: #646970;
+}
+
+.admaps-settings .admaps-section-title + .form-table,
+.admaps-settings .admaps-section-intro + .form-table {
+	margin-top: 8px;
+}
+
+.admaps-settings #admaps-default-height {
+	width: 8em;
+}
+
+.admaps-settings .admaps-tab-intro + .card {
 	margin-top: 16px;
+}
+
+/* Theme styling reference */
+.admaps-ref {
+	max-width: 900px;
+	margin-top: 12px;
+}
+
+.admaps-ref td:first-child {
+	width: 38%;
+}
+
+.admaps-ref code {
+	white-space: nowrap;
+}
+
+.admaps-ref td:first-child code {
+	display: inline-block;
+	margin: 1px 4px 1px 0;
+}
+
+.admaps-settings pre.admaps-code {
+	max-width: 900px;
+	margin: 12px 0;
+	padding: 12px 14px;
+	overflow-x: auto;
+	background: #1d2327;
+	color: #f0f0f1;
+	border-radius: 4px;
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.admaps-settings pre.admaps-code code {
+	padding: 0;
+	background: none;
+	color: inherit;
 }
 
 .admaps-editor__map.is-drawing .leaflet-interactive {

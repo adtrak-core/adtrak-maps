@@ -222,6 +222,8 @@ class Import_Export {
 				<div class="notice notice-<?php echo 'success' === $notice[0] ? 'success' : 'error'; ?> is-dismissible"><p><?php echo esc_html( $notice[1] ); ?></p></div>
 			<?php endif; ?>
 
+			<p class="admaps-tab-intro"><?php esc_html_e( 'Copy maps between sites, or bring them in from other mapping tools.', 'admaps' ); ?></p>
+
 			<div class="card">
 				<h2><?php esc_html_e( 'Export', 'admaps' ); ?></h2>
 				<p><?php esc_html_e( 'Download every map on this site as a JSON file. To export particular maps, use the Export link or bulk action on the Maps list.', 'admaps' ); ?></p>
