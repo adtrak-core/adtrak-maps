@@ -104,36 +104,14 @@ class Assets {
 	 * @return array<string, array>
 	 */
 	public static function tile_providers(): array {
-		$osm_attr   = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-		$carto_attr = $osm_attr . ' &copy; <a href="https://carto.com/attributions">CARTO</a>';
+		$osm_attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 		$providers = array(
-			'osm'           => array(
+			'osm' => array(
 				'label'       => __( 'OpenStreetMap', 'admaps' ),
 				'url'         => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 				'attribution' => $osm_attr,
 				'maxZoom'     => 19,
-			),
-			'carto-voyager' => array(
-				'label'       => __( 'CARTO Voyager', 'admaps' ),
-				'url'         => 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-				'attribution' => $carto_attr,
-				'subdomains'  => 'abcd',
-				'maxZoom'     => 20,
-			),
-			'carto-light'   => array(
-				'label'       => __( 'CARTO Positron (light)', 'admaps' ),
-				'url'         => 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-				'attribution' => $carto_attr,
-				'subdomains'  => 'abcd',
-				'maxZoom'     => 20,
-			),
-			'carto-dark'    => array(
-				'label'       => __( 'CARTO Dark Matter', 'admaps' ),
-				'url'         => 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-				'attribution' => $carto_attr,
-				'subdomains'  => 'abcd',
-				'maxZoom'     => 20,
 			),
 		);
 

@@ -270,7 +270,7 @@ class Settings {
 										<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $s['default_tiles'], $slug ); ?>><?php echo esc_html( $provider['label'] ); ?></option>
 									<?php endforeach; ?>
 								</select>
-								<p class="description"><?php esc_html_e( 'Used by maps set to "Site default". Check the provider\'s usage terms: CARTO\'s free basemaps are for non-commercial use, and OpenStreetMap\'s tile servers are for light use only.', 'admaps' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Used by maps set to "Site default". OpenStreetMap\'s tile servers are for light use only; for busy sites or a different look, add a keyed provider under Custom tiles.', 'admaps' ); ?></p>
 							</td>
 						</tr>
 						<tr>

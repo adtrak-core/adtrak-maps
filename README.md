@@ -99,7 +99,7 @@ Scribble Maps' free plan can't export, so most migrations are quickest rebuilt b
 
 Leaflet and its plugins are served from the plugin itself. Visitors' browsers request **map tiles** from the chosen provider (OpenStreetMap by default). The admin address search uses OpenStreetMap's **Nominatim** service. It runs only in the editor, never on the front end.
 
-OpenStreetMap's tile servers are for light use, and CARTO's free basemaps are for non-commercial use. For busy or commercial sites, use a keyed provider under **Custom tiles**.
+The built-in style is OpenStreetMap, whose tile servers are for light use. For busy sites or a different look, use a keyed provider (MapTiler, Stadia Maps, Thunderforest…) under **Custom tiles**.
 
 ## Permissions
 
