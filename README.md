@@ -6,6 +6,7 @@ Lightweight Leaflet maps for client WordPress sites, built to replace Scribble M
 - Pins with HTML info bubbles: coloured SVG pins or your own image
 - Optional "Get directions" link on pins, opening Google Maps (or its app on phones)
 - Radius circles (miles, km or metres) and polygon coverage areas
+- Dynamic locations: pins and coverage radii built from an ACF repeater or a post type, positioned from latitude and longitude or looked up from a postcode, ZIP code or address
 - Colours and opacities for everything, plus an optional legend
 - Optional clustering of nearby pins
 - OpenStreetMap maps with a normal, greyscale or dark tint, or your own tile provider
@@ -38,6 +39,28 @@ Update checks are off in a git checkout (a folder containing `.git`), so a devel
 4. Set height, map style, tint, zoom behaviour, clustering and legend in the **Map settings** box. Use **Set start view** if *Fit to contents* is off.
 5. Publish, then copy the shortcode from the **Shortcode** box (or the Maps list).
 
+### Dynamic locations
+
+The **Dynamic locations** box on a map adds pins (and optionally a coverage radius around each) from existing content, alongside anything drawn on the map:
+
+- **An ACF repeater** on an options page, on a particular page or post, or on *the page showing the map*. The last lets one map be used on many pages (area pages, for example), each showing its own repeater. Repeaters need ACF Pro or Secure Custom Fields.
+- **Posts** of a post type, such as a Locations post type (published only, up to 1,000). These also work with plain custom fields.
+
+Under **Fields**, enter the field *names* holding the name, latitude and longitude (or an ACF Google Map field), phone, address, postcode / ZIP code and link. Suggestions come from your ACF field groups, and obvious matches are filled in. The **Info bubble** is a template using `{name}`, `{address}`, `{postcode}` (or `{zip}`), `{phone}`, `{url}` or any other field by its name. Pins can be a coloured pin or an image, and can share one legend row. The radius can be the same for every location or read from a number field.
+
+The editor previews the locations (faded) and lists any that couldn't be placed.
+
+**How locations are built.** Locations are built when they're saved (the options page, post or page), when the map is saved, and with **Rebuild locations** at the top of the box. The result is stored with the map (or, for *the page showing the map*, with each page), so showing a map only reads stored data: nothing is looked up while visitors browse. If locations change another way, such as an import, a direct database edit or code, press **Rebuild locations**. There is no scheduled rebuild.
+
+**Finding positions.** Locations with latitude and longitude are used as they are. With **Find the position from the postcode / ZIP code or address** ticked (the default), the rest are looked up:
+
+- UK postcodes with [postcodes.io](https://postcodes.io/), in batches of 100.
+- ZIP codes, other postcodes and addresses with OpenStreetMap's [Nominatim](https://nominatim.org/), at most one a second (its usage policy).
+
+Set **Search in country** to the site's country (`gb`, `us`, `ie`…) so codes aren't matched abroad; leave it blank to search everywhere. Each postcode or address is looked up once and saved, so rebuilding doesn't look it up again. Results are kept for up to 5,000 postcodes and addresses. Saving runs only a few lookups so the save stays quick; the rest finish in the background (WP-Cron) over the next few minutes, and the map updates itself. Ones that aren't found are retried a day later, and if a service is down the plugin waits 10–15 minutes before trying it again.
+
+**Keeping addresses private.** Untick the lookup option and only locations with latitude and longitude are placed: nothing is sent to postcodes.io or Nominatim. Use this when locations are people's home addresses or anything else that shouldn't leave the site.
+
 ### Shortcode
 
 ```
@@ -51,6 +74,7 @@ Update checks are off in a git checkout (a folder containing `.git`), so a devel
 | `height` | Overrides the map's height. `px`, `vh`, `rem`, `em` or `%`. |
 | `zoom` | Fixed zoom level (0–22); turns off *Fit to contents* for this instance. |
 | `class` | Extra CSS classes on the map container. |
+| `source` | For a map whose Dynamic locations come from an ACF repeater: where to read it on this page. `current` (the page showing the map), `options` (the options page) or a page or post ID. |
 
 Draft maps are shown only to people who can edit them. A missing map renders nothing for visitors and shows an error to editors. Maps are lazy-initialised when scrolled near, and resize correctly inside tabs, accordions and popups. On phones and tablets one finger scrolls the page past the map and two fingers move it, with a short hint if someone tries one finger. The mouse wheel only zooms after the map is clicked, unless "Zoom with scroll wheel" is on.
 
@@ -62,7 +86,7 @@ Draft maps are shown only to people who can edit them. A missing map renders not
 |---|---|
 | General | Default map style (tile layer), map tint (normal, greyscale or dark), default height for new maps, and the directions link text. |
 | Appearance | Info bubble width, text size, padding, corner radius and colours; legend text size and colours; whether to use the theme's font. |
-| New item defaults | Starting colours, opacities, line width and radius for new items. After the first item, new items copy the previous item of the same type. |
+| New item defaults | Starting pin style (coloured pin or image, size and anchor), colours, opacities, line width and radius for new items, and for Dynamic locations on new maps. After the first item, new items copy the previous item of the same type. |
 | Custom tiles | A keyed tile provider (MapTiler, Stadia, Mapbox…), which then appears as a map style. |
 | Advanced | Two-finger map movement on touch screens (on by default). Delete all maps and settings when the plugin is deleted (off by default). |
 | Import / Export | Export all maps as JSON, or import maps from another site. |
@@ -90,18 +114,30 @@ Appearance settings are output as CSS custom properties on `.admaps-map`, so a t
 
 Only values that differ from the built-in defaults are applied inline, so a theme's values apply wherever the settings are left at their defaults, and anything changed in the admin takes priority. When *Use the theme's font* is on, the container gets `.admaps-map--theme-font`.
 
+Pins and radius circles from Dynamic locations also have the class `admaps-dynamic` (on the pin's `.leaflet-marker-icon` and on the circle's SVG `path`), so they can be styled apart from drawn items.
+
 The **Theme styling** tab in Settings lists every class, with Tailwind examples. Keep theme rules outside `@layer` (Leaflet's and the plugin's CSS aren't layered, so layered rules lose to them), and start selectors with `body` to beat the plugin's equivalents whichever stylesheet loads last.
 
 ## Import and export
 
-- **Between sites:** **Maps → Settings → Import / Export** exports selected or all maps as JSON (also available as a row action and bulk action in the Maps list). Custom pin images are not copied: imported image pins become standard coloured pins, ready to have their images chosen again from the media library.
+- **Between sites:** **Maps → Settings → Import / Export** exports selected or all maps as JSON (also available as a row action and bulk action in the Maps list). Custom pin images are not copied: imported image pins become standard coloured pins, ready to have their images chosen again from the media library. Dynamic locations settings are exported as they are, not the locations themselves: they work on the other site if it has the same field names (and, for a particular page, the same page ID). Otherwise, correct them in the map's Dynamic locations box after importing.
 - **KML / GeoJSON:** in the map editor, **Import KML / GeoJSON** adds features from a file (Google My Maps, Google Earth, Scribble Maps paid plans). Pins, polygons and their colours are imported; many-sided circles are converted back to editable radii; HTML descriptions are sanitised. Lines are skipped. KMZ files need unzipping first.
 
 Scribble Maps' free plan can't export, so most migrations are quickest rebuilt by hand with the address search.
 
 ## Privacy and third parties
 
-Leaflet and its plugins are served from the plugin itself. Visitors' browsers request **map tiles** from the chosen provider (OpenStreetMap by default). The admin address search uses OpenStreetMap's **Nominatim** service. It runs only in the editor, never on the front end.
+Leaflet and its plugins are served from the plugin itself. While visitors browse, the only outside requests are their browsers fetching **map tiles** from the chosen provider (OpenStreetMap by default). Everything else is stored on the site.
+
+The server contacts other services only from the admin side:
+
+| Service | Used for | Sent |
+|---|---|---|
+| OpenStreetMap [Nominatim](https://nominatim.org/) | The editor's address search; Dynamic locations lookups of ZIP codes, non-UK postcodes and addresses | The search text, or the location's postcode or address, with the country code. The request identifies the plugin and the site's address, as Nominatim's policy requires. |
+| [postcodes.io](https://postcodes.io/) | Dynamic locations lookups of UK postcodes | The postcode only. |
+| GitHub | Update checks | A request for the list of releases, with WordPress's usual request headers (which include the site's address). |
+
+Dynamic locations lookups happen when locations are saved or rebuilt, and in the background just afterwards, never when a visitor views a map. Untick **Find the position from the postcode / ZIP code or address** on a map to send nothing. See *Dynamic locations* above.
 
 The built-in style is OpenStreetMap, whose tile servers are for light use. For busy sites or a different look, use a keyed provider (MapTiler, Stadia Maps, Thunderforest…) under **Custom tiles**.
 
@@ -153,6 +189,11 @@ includes/
   class-post-type.php        admaps_map post type and list screen
   class-admin-editor.php     Edit screen meta boxes and saving
   class-shortcode.php        [admaps] output
+  class-sources.php          Dynamic locations: settings, reading repeaters and posts, building pins
+  class-geocoder.php         Postcode and address lookups (postcodes.io, Nominatim) and saved results
+  class-locations.php        Storing built locations and rebuilding them when content changes
+  class-admin-source.php     Dynamic locations box, preview and Rebuild locations
+  class-pin-field.php        Pin style controls (coloured pin or image) shared by Settings and Dynamic locations
   class-assets.php           Script/style registration and tile providers
   class-import-export.php    JSON export/import
   class-updater.php          Updates from GitHub releases
@@ -165,7 +206,7 @@ bin/build-release.sh         Builds the release zip
 uninstall.php                Optional data removal
 ```
 
-Map contents are stored as one array in the `_admaps_data` post meta of each `admaps_map` post. Everything from the browser or an import is rebuilt field by field in `Map_Data::sanitize()`.
+Map contents are stored as one array in the `_admaps_data` post meta of each `admaps_map` post. Built dynamic locations are stored in `_admaps_locations` on the map, or `_admaps_locations_{map ID}` on each page for repeaters on *the page showing the map*. Saved lookups are in the `admaps_geocode` option (not autoloaded). These are always removed when the plugin is deleted, as they can be rebuilt. Everything from the browser or an import is rebuilt field by field in `Map_Data::sanitize()`.
 
 There is no build step. Edit the files directly. Code must stay PHP 7.4 compatible (no union types, `match`, named arguments, nullsafe operator or constructor promotion).
 

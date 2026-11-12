@@ -40,8 +40,9 @@
 			'<circle cx="12" cy="12" r="4.5" fill="#fff"/></svg>';
 	}
 
-	function markerIcon( icon ) {
+	function markerIcon( icon, extraClass ) {
 		icon = icon || {};
+		var extra = extraClass ? ' ' + extraClass : '';
 		var w = Math.max( 8, parseInt( icon.width, 10 ) || 28 );
 
 		if ( icon.type === 'image' && icon.url ) {
@@ -54,13 +55,13 @@
 				iconAnchor: [ w / 2, centre ? h / 2 : h ],
 				popupAnchor: [ 0, top ],
 				tooltipAnchor: [ 0, top ],
-				className: 'admaps-icon-image'
+				className: 'admaps-icon-image' + extra
 			} );
 		}
 
 		var ph = Math.round( w * 1.5 );
 		return L.divIcon( {
-			className: 'admaps-pin',
+			className: 'admaps-pin' + extra,
 			html: pinSvg( color( icon.color, '#e63946' ), w, ph ),
 			iconSize: [ w, ph ],
 			iconAnchor: [ w / 2, ph ],
@@ -95,14 +96,18 @@
 
 	function markerLayer( item, options ) {
 		return L.marker( [ item.lat, item.lng ], L.extend( {
-			icon: markerIcon( item.icon ),
+			icon: markerIcon( item.icon, item.dynamic ? 'admaps-dynamic' : '' ),
 			alt: item.label || '',
 			keyboard: true
 		}, options || {} ) );
 	}
 
 	function circleLayer( item ) {
-		return L.circle( [ item.lat, item.lng ], L.extend( { radius: +item.radius }, shapeStyle( item ) ) );
+		var opts = L.extend( { radius: +item.radius }, shapeStyle( item ) );
+		if ( item.dynamic ) {
+			opts.className = 'admaps-dynamic';
+		}
+		return L.circle( [ item.lat, item.lng ], opts );
 	}
 
 	function polygonLayer( item ) {
