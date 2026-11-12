@@ -41,6 +41,7 @@ class Pin_Field {
 	 * @param array  $icon Sanitised icon.
 	 */
 	public static function render( string $name, string $id, array $icon ): void {
+		$icon  = Map_Data::sanitize_icon( $icon );
 		$image = 'image' === $icon['type'];
 		?>
 		<tr class="admaps-pin-field" data-pin-type="<?php echo esc_attr( $icon['type'] ); ?>">

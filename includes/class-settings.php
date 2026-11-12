@@ -101,9 +101,10 @@ class Settings {
 				$settings[ $group ] = array_merge( $defaults[ $group ], isset( $stored[ $group ] ) && is_array( $stored[ $group ] ) ? $stored[ $group ] : array() );
 			}
 			// Saved before pins could be images: keep the chosen colour.
-			if ( empty( $stored['item_defaults']['icon'] ) ) {
-				$settings['item_defaults']['icon']['color'] = $settings['item_defaults']['pin_color'];
-			}
+			$icon = isset( $stored['item_defaults']['icon'] ) && is_array( $stored['item_defaults']['icon'] )
+				? $stored['item_defaults']['icon']
+				: array( 'color' => $settings['item_defaults']['pin_color'] );
+			$settings['item_defaults']['icon'] = Map_Data::sanitize_icon( $icon, $defaults['item_defaults']['pin_color'] );
 			self::$cache = $settings;
 		}
 		return self::$cache;
