@@ -28,6 +28,7 @@ require_once ADMAPS_PATH . 'includes/class-locations.php';
 require_once ADMAPS_PATH . 'includes/class-assets.php';
 require_once ADMAPS_PATH . 'includes/class-post-type.php';
 require_once ADMAPS_PATH . 'includes/class-shortcode.php';
+require_once ADMAPS_PATH . 'includes/class-pin-field.php';
 require_once ADMAPS_PATH . 'includes/class-admin-editor.php';
 require_once ADMAPS_PATH . 'includes/class-admin-source.php';
 require_once ADMAPS_PATH . 'includes/class-import-export.php';

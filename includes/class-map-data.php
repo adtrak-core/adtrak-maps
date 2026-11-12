@@ -228,30 +228,6 @@ class Map_Data {
 			return null;
 		}
 
-		$icon     = isset( $raw['icon'] ) && is_array( $raw['icon'] ) ? $raw['icon'] : array();
-		$type     = isset( $icon['type'] ) && 'image' === $icon['type'] ? 'image' : 'svg';
-		$color    = sanitize_hex_color( (string) ( $icon['color'] ?? '' ) );
-		$attach   = absint( $icon['attachment_id'] ?? 0 );
-		$url      = esc_url_raw( (string) ( $icon['url'] ?? '' ) );
-		$width    = self::clamp_int( $icon['width'] ?? 0, 8, 200, 'image' === $type ? 40 : 28 );
-		$height   = self::clamp_int( $icon['height'] ?? 0, 8, 200, 'image' === $type ? 40 : 42 );
-		$anchor   = isset( $icon['anchor'] ) && 'center' === $icon['anchor'] ? 'center' : 'bottom';
-
-		if ( $attach && 'attachment' === get_post_type( $attach ) ) {
-			$attach_url = wp_get_attachment_url( $attach );
-			$url        = $attach_url ? $attach_url : $url;
-			$meta       = wp_get_attachment_metadata( $attach );
-			if ( 'image' === $type && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
-				$height = max( 8, min( 300, (int) round( $width * $meta['height'] / $meta['width'] ) ) );
-			}
-		} else {
-			$attach = 0;
-		}
-
-		if ( 'image' === $type && '' === $url ) {
-			$type = 'svg';
-		}
-
 		return array(
 			'id'     => self::sanitize_id( $raw['id'] ?? '' ),
 			'lat'    => $pos[0],
@@ -262,15 +238,51 @@ class Map_Data {
 			'legend'     => self::to_bool( $raw['legend'] ?? false ),
 			'directions' => self::to_bool( $raw['directions'] ?? false ),
 		) + self::sanitize_popup_size( $raw ) + array(
-			'icon'   => array(
-				'type'          => $type,
-				'color'         => $color ? $color : '#e63946',
-				'attachment_id' => $attach,
-				'url'           => $url,
-				'width'         => $width,
-				'height'        => $height,
-				'anchor'        => $anchor,
-			),
+			'icon' => self::sanitize_icon( isset( $raw['icon'] ) && is_array( $raw['icon'] ) ? $raw['icon'] : array() ),
+		);
+	}
+
+	/**
+	 * Sanitise a pin's look: a coloured pin, or an image (from the Media Library, or a URL).
+	 * Used by drawn pins, the site's default pin and dynamic locations.
+	 *
+	 * @param array  $icon    Raw icon.
+	 * @param string $default Colour when none is given.
+	 * @return array {type, color, attachment_id, url, width, height, anchor}
+	 */
+	public static function sanitize_icon( array $icon, string $default = '#e63946' ): array {
+		$type   = isset( $icon['type'] ) && 'image' === $icon['type'] ? 'image' : 'svg';
+		$color  = sanitize_hex_color( (string) ( $icon['color'] ?? '' ) );
+		$attach = absint( $icon['attachment_id'] ?? 0 );
+		$url    = esc_url_raw( (string) ( $icon['url'] ?? '' ) );
+		$anchor = isset( $icon['anchor'] ) && 'center' === $icon['anchor'] ? 'center' : 'bottom';
+		$meta   = array();
+
+		if ( $attach && 'attachment' === get_post_type( $attach ) ) {
+			$attach_url = wp_get_attachment_url( $attach );
+			$url        = $attach_url ? $attach_url : $url;
+			$meta       = wp_get_attachment_metadata( $attach );
+		} else {
+			$attach = 0;
+		}
+		if ( 'image' === $type && '' === $url ) {
+			$type = 'svg';
+		}
+
+		$width  = self::clamp_int( $icon['width'] ?? 0, 8, 200, 'image' === $type ? 40 : 28 );
+		$height = self::clamp_int( $icon['height'] ?? 0, 8, 300, 'image' === $type ? 40 : (int) round( $width * 1.5 ) );
+		if ( 'image' === $type && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+			$height = max( 8, min( 300, (int) round( $width * $meta['height'] / $meta['width'] ) ) );
+		}
+
+		return array(
+			'type'          => $type,
+			'color'         => $color ? $color : $default,
+			'attachment_id' => $attach,
+			'url'           => $url,
+			'width'         => $width,
+			'height'        => $height,
+			'anchor'        => $anchor,
 		);
 	}
 

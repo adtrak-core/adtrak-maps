@@ -68,6 +68,15 @@ class Settings {
 	public static function item_defaults(): array {
 		return array(
 			'pin_color'      => '#e63946',
+			'icon'           => array(
+				'type'          => 'svg',
+				'color'         => '#e63946',
+				'attachment_id' => 0,
+				'url'           => '',
+				'width'         => 28,
+				'height'        => 42,
+				'anchor'        => 'bottom',
+			),
 			'stroke'         => '#1d3557',
 			'stroke_opacity' => 1,
 			'weight'         => 2,
@@ -90,6 +99,10 @@ class Settings {
 			$settings = array_merge( $defaults, $stored );
 			foreach ( array( 'appearance', 'item_defaults' ) as $group ) {
 				$settings[ $group ] = array_merge( $defaults[ $group ], isset( $stored[ $group ] ) && is_array( $stored[ $group ] ) ? $stored[ $group ] : array() );
+			}
+			// Saved before pins could be images: keep the chosen colour.
+			if ( empty( $stored['item_defaults']['icon'] ) ) {
+				$settings['item_defaults']['icon']['color'] = $settings['item_defaults']['pin_color'];
 			}
 			self::$cache = $settings;
 		}
@@ -144,6 +157,7 @@ class Settings {
 		wp_enqueue_style( 'wp-color-picker' );
 		wp_enqueue_style( 'admaps-admin', ADMAPS_URL . 'assets/css/admin.css', array(), ADMAPS_VERSION );
 		wp_enqueue_script( 'admaps-settings', ADMAPS_URL . 'assets/js/admin-settings.js', array( 'jquery', 'wp-color-picker' ), ADMAPS_VERSION, true );
+		Pin_Field::enqueue();
 	}
 
 	/**
@@ -206,6 +220,10 @@ class Settings {
 		$out['item_defaults']['weight'] = is_numeric( $weight ) ? max( 0, min( 20, (int) $weight ) ) : $base['weight'];
 
 		$out['item_defaults']['directions'] = ! empty( $items['directions'] );
+
+		$icon = isset( $items['icon'] ) && is_array( $items['icon'] ) ? $items['icon'] : array( 'color' => $out['item_defaults']['pin_color'] );
+		$out['item_defaults']['icon']      = Map_Data::sanitize_icon( $icon, $base['pin_color'] );
+		$out['item_defaults']['pin_color'] = $out['item_defaults']['icon']['color'];
 
 		return $out;
 	}
@@ -327,13 +345,10 @@ class Settings {
 				</section>
 
 				<section class="admaps-tab-panel" data-admaps-panel="items">
-					<p class="admaps-tab-intro"><?php esc_html_e( 'Starting styles for newly added pins, radii and areas. After the first item, new items copy the style of the previous one of the same type.', 'admaps' ); ?></p>
+					<p class="admaps-tab-intro"><?php esc_html_e( 'Starting styles for newly added pins, radii and areas, and for dynamic locations on new maps. After the first item, new items copy the style of the previous one of the same type.', 'admaps' ); ?></p>
 					<?php self::section( __( 'Pins', 'admaps' ) ); ?>
 					<table class="form-table" role="presentation">
-						<tr>
-							<th scope="row"><label for="admaps-item-pin"><?php esc_html_e( 'Pin colour', 'admaps' ); ?></label></th>
-							<td><input type="text" class="admaps-color-field" id="admaps-item-pin" name="<?php echo esc_attr( $name ); ?>[item_defaults][pin_color]" value="<?php echo esc_attr( $items['pin_color'] ); ?>"></td>
-						</tr>
+						<?php Pin_Field::render( $name . '[item_defaults][icon]', 'admaps-item-pin', $items['icon'] ); ?>
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Directions link', 'admaps' ); ?></th>
 							<td><label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[item_defaults][directions]" value="1" <?php checked( $items['directions'] ); ?>> <?php esc_html_e( 'Add a directions link to new pins', 'admaps' ); ?></label></td>

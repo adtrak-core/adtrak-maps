@@ -648,3 +648,23 @@ fieldset.admaps-field label {
 		text-align: left;
 	}
 }
+
+.admaps-pin-image {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.admaps-pin-image__preview:empty {
+	display: none;
+}
+
+.admaps-pin-image__preview img {
+	display: block;
+	max-width: 64px;
+	max-height: 64px;
+	padding: 4px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}

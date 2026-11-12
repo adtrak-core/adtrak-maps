@@ -53,7 +53,7 @@
 			directions: !! ITEM.directions,
 			popup_min: 0,
 			popup_max: 0,
-			icon: { type: 'svg', color: ITEM.pin_color, attachment_id: 0, url: '', width: 28, height: 42, anchor: 'bottom' }
+			icon: $.extend( { type: 'svg', color: ITEM.pin_color, attachment_id: 0, url: '', width: 28, height: 42, anchor: 'bottom' }, ITEM.icon || {} )
 		},
 		circles: $.extend( {}, SHAPE_DEFAULTS, {
 			radius: round( ITEM.radius * UNITS[ ITEM.unit ], 1 ),

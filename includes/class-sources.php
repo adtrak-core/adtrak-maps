@@ -44,7 +44,7 @@ class Sources {
 			'geocode'        => true,
 			'country'        => 'gb',
 			'template'       => "<strong>{name}</strong>\n{address}\n{postcode}\n{phone}",
-			'pin_color'      => $items['pin_color'],
+			'icon'           => $items['icon'],
 			'directions'     => (bool) $items['directions'],
 			'legend'         => false,
 			'legend_label'   => '',
@@ -117,7 +117,14 @@ class Sources {
 			$out['template'] = wp_kses_post( substr( (string) $raw['template'], 0, 5000 ) );
 		}
 
-		foreach ( array( 'pin_color', 'fill', 'stroke' ) as $key ) {
+		if ( isset( $raw['icon'] ) && is_array( $raw['icon'] ) ) {
+			$out['icon'] = Map_Data::sanitize_icon( $raw['icon'], $out['icon']['color'] );
+		} elseif ( isset( $raw['pin_color'] ) ) {
+			// Saved before pins could be images.
+			$out['icon'] = Map_Data::sanitize_icon( array( 'color' => $raw['pin_color'] ), $out['icon']['color'] );
+		}
+
+		foreach ( array( 'fill', 'stroke' ) as $key ) {
 			$color = sanitize_hex_color( (string) ( $raw[ $key ] ?? '' ) );
 			if ( $color ) {
 				$out[ $key ] = $color;
@@ -192,6 +199,8 @@ class Sources {
 
 		$fields   = $source['fields'];
 		$template = wpautop( do_shortcode( $source['template'] ) );
+		$icon     = $source['icon'];
+		unset( $icon['attachment_id'] );
 		$factor   = self::UNITS[ $source['unit'] ];
 
 		$found    = array();
@@ -258,14 +267,7 @@ class Sources {
 				'dynamic'      => true,
 				'popup_min'    => 0,
 				'popup_max'    => 0,
-				'icon'         => array(
-					'type'   => 'svg',
-					'color'  => $source['pin_color'],
-					'url'    => '',
-					'width'  => 28,
-					'height' => 42,
-					'anchor' => 'bottom',
-				),
+				'icon'         => $icon,
 			);
 
 			$radius = 'none' === $source['radius_mode'] ? 0 : $source['radius'];

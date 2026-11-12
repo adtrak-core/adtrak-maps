@@ -39,6 +39,7 @@ class Admin_Source {
 		if ( ! Admin_Editor::is_editor_screen() ) {
 			return;
 		}
+		Pin_Field::enqueue();
 		wp_localize_script(
 			'admaps-editor',
 			'admapsSource',
@@ -277,10 +278,7 @@ class Admin_Source {
 
 			<h3 class="admaps-section-title"><?php esc_html_e( 'Pins', 'admaps' ); ?></h3>
 			<table class="form-table" role="presentation">
-				<tr>
-					<th scope="row"><label for="admaps-source-pin"><?php esc_html_e( 'Pin colour', 'admaps' ); ?></label></th>
-					<td><input type="text" class="admaps-color-field" id="admaps-source-pin" name="<?php echo esc_attr( $name ); ?>[pin_color]" value="<?php echo esc_attr( $s['pin_color'] ); ?>"></td>
-				</tr>
+				<?php Pin_Field::render( $name . '[icon]', 'admaps-source-pin', $s['icon'] ); ?>
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Legend', 'admaps' ); ?></th>
 					<td>
