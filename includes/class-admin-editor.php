@@ -147,6 +147,12 @@ class Admin_Editor {
 					'bubbleEmpty'     => __( 'This bubble is empty, so it won\'t open on the live map.', 'admaps' ),
 					'labelPlaceholder' => __( 'Shown on hover and in the legend', 'admaps' ),
 					'noItems'         => __( 'Nothing on this map yet. Use the buttons above to add a pin, radius or area.', 'admaps' ),
+					/* translators: %d: number of locations */
+					'dynamicOnly'     => __( 'This map is showing %d dynamic locations, set up in Dynamic locations below, so they aren\'t listed here. To add your own pins, radii or areas as well, use the buttons above.', 'admaps' ),
+					'dynamicPage'     => __( 'This map shows dynamic locations from the page it is placed on, set up in Dynamic locations below. To add your own pins, radii or areas as well, use the buttons above.', 'admaps' ),
+					/* translators: %d: number of locations */
+					'dynamicExtra'    => __( 'Plus %d dynamic locations, set up in Dynamic locations below.', 'admaps' ),
+					'dynamicPageExtra' => __( 'Plus dynamic locations from the page the map is placed on.', 'admaps' ),
 					'deleteConfirm'   => __( 'Delete this item?', 'admaps' ),
 					'chooseImage'     => __( 'Choose pin image', 'admaps' ),
 					'useImage'        => __( 'Use this image', 'admaps' ),

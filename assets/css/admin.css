@@ -190,6 +190,11 @@
 	color: #646970;
 }
 
+.admaps-items__dynamic {
+	border-top: 1px solid #f0f0f1;
+	font-size: 12px;
+}
+
 .admaps-item {
 	display: flex;
 	gap: 8px;

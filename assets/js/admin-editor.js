@@ -430,6 +430,22 @@
 		return state.markers.length + state.circles.length + state.polygons.length;
 	}
 
+	// What the list says about dynamic locations, which aren't listed item by item.
+	function dynamicNote( hasItems ) {
+		var type = $( '#admaps-source-type' ).val();
+		if ( ! type ) {
+			return '';
+		}
+		if ( type === 'repeater' && $( '#admaps-source-location' ).val() === 'current' ) {
+			return hasItems ? i18n.dynamicPageExtra : i18n.dynamicPage;
+		}
+		var count = sourcePreview ? sourcePreview.markers.length : 0;
+		if ( ! count ) {
+			return '';
+		}
+		return sprintf( hasItems ? i18n.dynamicExtra : i18n.dynamicOnly, count );
+	}
+
 	function renderList() {
 		var html = '';
 		[ 'markers', 'circles', 'polygons' ].forEach( function ( type ) {
@@ -440,7 +456,13 @@
 					'<span class="admaps-item__label">' + esc( displayName( type, item ) ) + '</span></button></li>';
 			} );
 		} );
-		$list.html( html || '<li class="admaps-items__empty">' + esc( i18n.noItems ) + '</li>' );
+		var note = dynamicNote( !! html );
+		if ( ! html ) {
+			html = '<li class="admaps-items__empty">' + esc( note || i18n.noItems ) + '</li>';
+		} else if ( note ) {
+			html += '<li class="admaps-items__empty admaps-items__dynamic">' + esc( note ) + '</li>';
+		}
+		$list.html( html );
 		$list.prop( 'hidden', !! selected );
 	}
 
@@ -1314,6 +1336,7 @@
 			}, L.latLngBounds( [] ) ), { padding: [ 30, 30 ], maxZoom: 13 } );
 		}
 		refreshLegend();
+		renderList();
 	}
 
 	function loadSourcePreview() {
