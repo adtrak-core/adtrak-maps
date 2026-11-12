@@ -74,7 +74,7 @@ class Shortcode {
 		}
 
 		$context = (int) ( in_the_loop() ? get_the_ID() : get_queried_object_id() );
-		$config  = Map_Data::to_frontend( $data, $context );
+		$config  = Map_Data::to_frontend( $data, $context, $map_id );
 		if ( is_numeric( $atts['zoom'] ) ) {
 			$config['settings']['zoom']       = max( 0, min( 22, (int) $atts['zoom'] ) );
 			$config['settings']['fit_bounds'] = false;

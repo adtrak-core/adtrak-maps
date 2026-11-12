@@ -22,6 +22,7 @@ class Admin_Source {
 	public static function init(): void {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ), 20 );
 		add_action( 'wp_ajax_admaps_source_preview', array( __CLASS__, 'preview' ) );
+		add_action( 'wp_ajax_admaps_source_rebuild', array( __CLASS__, 'rebuild' ) );
 	}
 
 	/**
@@ -63,6 +64,10 @@ class Admin_Source {
 					'failed'   => __( 'The preview could not be loaded.', 'admaps' ),
 					'postType' => __( 'Post title', 'admaps' ),
 					'postUrl'  => __( 'The post\'s own page', 'admaps' ),
+					'building' => __( 'Rebuilding…', 'admaps' ),
+					/* translators: %d: number of locations */
+					'rebuilt'  => __( 'Rebuilt just now: %d locations on the map.', 'admaps' ),
+					'perPage'  => __( 'Cleared. Each page rebuilds its own locations the next time it is shown.', 'admaps' ),
 				),
 			)
 		);
@@ -319,7 +324,45 @@ class Admin_Source {
 		</div>
 
 		<p class="admaps-source-status" id="admaps-source-status" role="status" aria-live="polite" data-show="type=repeater|posts"></p>
+
+		<?php if ( '' !== $s['type'] ) : ?>
+			<div class="admaps-source-rebuild">
+				<p>
+					<button type="button" class="button" id="admaps-source-rebuild"><?php esc_html_e( 'Rebuild locations', 'admaps' ); ?></button>
+					<span id="admaps-source-built" role="status" aria-live="polite">
+						<?php
+						$built = Locations::built_at( $post->ID );
+						if ( 'repeater' === $s['type'] && 'current' === $s['location'] ) {
+							esc_html_e( 'Built for each page when it is saved or first shown.', 'admaps' );
+						} elseif ( $built ) {
+							/* translators: %s: time ago, e.g. "5 mins" */
+							printf( esc_html__( 'Last built %s ago.', 'admaps' ), esc_html( human_time_diff( $built ) ) );
+						}
+						?>
+					</span>
+				</p>
+				<p class="description"><?php esc_html_e( 'The map\'s locations are built when they are saved, not every time the map is shown. If locations were added another way (an import, or code), click this to pick them up. It uses the saved settings above.', 'admaps' ); ?></p>
+			</div>
+		<?php endif; ?>
 		<?php
+	}
+
+	/**
+	 * Rebuild the map's stored locations.
+	 */
+	public static function rebuild(): void {
+		check_ajax_referer( self::NONCE, 'nonce' );
+		$post_id = absint( $_POST['post_id'] ?? 0 );
+		if ( ! $post_id || Post_Type::NAME !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( null, 403 );
+		}
+		$result = Locations::rebuild( $post_id );
+		wp_send_json_success(
+			array(
+				'per_page' => ! empty( $result['per_page'] ),
+				'count'    => count( $result['markers'] ?? array() ),
+			)
+		);
 	}
 
 	/**

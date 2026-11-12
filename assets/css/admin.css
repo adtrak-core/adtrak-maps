@@ -607,3 +607,14 @@ fieldset.admaps-field label {
 .admaps-source-status[data-kind="error"] {
 	border-left-color: #d63638;
 }
+
+#admaps-source .admaps-source-rebuild {
+	border-top: 1px solid #f0f0f1;
+	margin-top: 12px;
+	padding-top: 4px;
+}
+
+#admaps-source-built {
+	margin-left: 8px;
+	color: #50575e;
+}

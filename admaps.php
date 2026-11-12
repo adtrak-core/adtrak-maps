@@ -24,6 +24,7 @@ define( 'ADMAPS_URL', plugin_dir_url( __FILE__ ) );
 require_once ADMAPS_PATH . 'includes/class-map-data.php';
 require_once ADMAPS_PATH . 'includes/class-sources.php';
 require_once ADMAPS_PATH . 'includes/class-geocoder.php';
+require_once ADMAPS_PATH . 'includes/class-locations.php';
 require_once ADMAPS_PATH . 'includes/class-assets.php';
 require_once ADMAPS_PATH . 'includes/class-post-type.php';
 require_once ADMAPS_PATH . 'includes/class-shortcode.php';
@@ -44,7 +45,7 @@ add_action(
 		\Admaps\Assets::init();
 		\Admaps\Shortcode::init();
 		\Admaps\Updater::init();
-		\Admaps\Geocoder::init();
+		\Admaps\Locations::init();
 
 		if ( is_admin() ) {
 			\Admaps\Admin_Editor::init();
@@ -58,6 +59,6 @@ add_action(
 register_deactivation_hook(
 	__FILE__,
 	static function () {
-		wp_clear_scheduled_hook( 'admaps_geocode' );
+		wp_unschedule_hook( 'admaps_geocode' );
 	}
 );

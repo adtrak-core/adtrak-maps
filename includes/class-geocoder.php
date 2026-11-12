@@ -16,8 +16,8 @@ defined( 'ABSPATH' ) || exit;
  * usage policy asks. Results are saved, so each postcode or address is only
  * looked up once; ones that can't be found are tried again a day later.
  *
- * Lookups mostly happen in the background after locations are saved. A
- * visitor's page view only ever does a small top-up.
+ * Lookups happen when locations are built (see Locations): a few straight
+ * away, the rest in the background.
  */
 class Geocoder {
 
@@ -42,15 +42,6 @@ class Geocoder {
 	 * @var int
 	 */
 	public static $answered = 0;
-
-	/**
-	 * Hook up.
-	 */
-	public static function init(): void {
-		add_action( self::HOOK, array( __CLASS__, 'run_background' ) );
-		add_action( 'acf/save_post', array( __CLASS__, 'saved_acf' ), 20 );
-		add_action( 'wp_after_insert_post', array( __CLASS__, 'saved_post' ), 20, 2 );
-	}
 
 	/**
 	 * What to look up for a location, or null when there's nothing to go on.
@@ -312,79 +303,6 @@ class Geocoder {
 	}
 
 	/**
-	 * After an ACF options page is saved.
-	 *
-	 * @param int|string $post_id What ACF saved: a post ID, 'options', 'user_1', etc.
-	 */
-	public static function saved_acf( $post_id ): void {
-		if ( ! is_numeric( $post_id ) && self::relevant( 'options' ) ) {
-			self::queue( 0 );
-		}
-	}
-
-	/**
-	 * After a post (and its custom fields) is saved.
-	 *
-	 * @param int      $post_id Post ID.
-	 * @param \WP_Post $post    Post.
-	 */
-	public static function saved_post( int $post_id, \WP_Post $post ): void {
-		if ( 'publish' !== $post->post_status || wp_is_post_revision( $post_id ) ) {
-			return;
-		}
-		if ( Post_Type::NAME === $post->post_type ) {
-			self::queue( 0 );
-		} elseif ( self::relevant( $post->post_type, $post_id ) ) {
-			self::queue( $post_id );
-		}
-	}
-
-	/**
-	 * Does any map read locations from this?
-	 *
-	 * @param string $what    'options', or a post type.
-	 * @param int    $post_id Post saved.
-	 * @return bool
-	 */
-	private static function relevant( string $what, int $post_id = 0 ): bool {
-		foreach ( self::dynamic_maps() as $source ) {
-			if ( 'repeater' === $source['type'] ) {
-				if ( 'options' === $what ? 'options' === $source['location'] : ( 'current' === $source['location'] || $post_id === $source['post_id'] ) ) {
-					return true;
-				}
-			} elseif ( $what === $source['post_type'] ) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Maps with a source that looks up positions.
-	 *
-	 * @return array Map ID => source settings.
-	 */
-	private static function dynamic_maps(): array {
-		$ids = get_posts(
-			array(
-				'post_type'      => Post_Type::NAME,
-				'post_status'    => array( 'publish', 'draft', 'private' ),
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-				'no_found_rows'  => true,
-			)
-		);
-		$out = array();
-		foreach ( $ids as $id ) {
-			$source = Map_Data::get( (int) $id )['source'];
-			if ( '' !== $source['type'] && $source['geocode'] ) {
-				$out[ (int) $id ] = $source;
-			}
-		}
-		return $out;
-	}
-
-	/**
 	 * Look up positions in the background shortly.
 	 *
 	 * @param int $context Post just saved (for maps reading "the page showing the map"), or 0.
@@ -393,28 +311,6 @@ class Geocoder {
 	public static function queue( int $context, int $delay = 0 ): void {
 		if ( ! wp_next_scheduled( self::HOOK, array( $context ) ) ) {
 			wp_schedule_single_event( time() + $delay, self::HOOK, array( $context ) );
-		}
-	}
-
-	/**
-	 * Background run: look up positions for every map's locations, and come
-	 * back in a minute if some are still waiting.
-	 *
-	 * @param int $context Post just saved, or 0.
-	 */
-	public static function run_background( $context = 0 ): void {
-		$context  = (int) $context;
-		$pending  = 0;
-		$answered = self::$answered;
-		foreach ( self::dynamic_maps() as $source ) {
-			$current = 'repeater' === $source['type'] && 'current' === $source['location'];
-			if ( $current && ! $context ) {
-				continue;
-			}
-			$pending += Sources::items( $source, $current ? $context : 0, self::BACKGROUND )['pending'];
-		}
-		if ( $pending && self::$answered > $answered ) {
-			self::queue( $context, MINUTE_IN_SECONDS );
 		}
 	}
 }

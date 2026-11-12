@@ -378,6 +378,9 @@ class Sources {
 			)
 		);
 
+		// Load every post and its fields in two queries, rather than two per post.
+		_prime_post_caches( $ids, false, true );
+
 		$acf  = self::has_acf();
 		$rows = array();
 		foreach ( $ids as $id ) {

@@ -1397,6 +1397,23 @@
 		toggleSourceFields();
 		refreshFieldLists();
 		loadSourcePreview();
+
+		$( '#admaps-source-rebuild' ).on( 'click', function () {
+			var $button = $( this ).prop( 'disabled', true );
+			var $built  = $( '#admaps-source-built' ).text( SRC.i18n.building );
+			$.post( window.ajaxurl, {
+				action: 'admaps_source_rebuild',
+				nonce: SRC.nonce,
+				post_id: $( '#post_ID' ).val()
+			} ).done( function ( response ) {
+				var data = response && response.success && response.data;
+				$built.text( ! data ? SRC.i18n.failed : ( data.per_page ? SRC.i18n.perPage : sprintf( SRC.i18n.rebuilt, data.count ) ) );
+			} ).fail( function () {
+				$built.text( SRC.i18n.failed );
+			} ).always( function () {
+				$button.prop( 'disabled', false );
+			} );
+		} );
 	}
 
 	/* ---------- boot ---------- */

@@ -390,9 +390,10 @@ class Map_Data {
 	 *
 	 * @param array $data    Sanitised data.
 	 * @param int   $context ID of the post showing the map, for dynamic locations.
+	 * @param int   $map_id  Map ID, to read its stored dynamic locations.
 	 * @return array
 	 */
-	public static function to_frontend( array $data, int $context = 0 ): array {
+	public static function to_frontend( array $data, int $context = 0, int $map_id = 0 ): array {
 		$settings = $data['settings'];
 		$tiles    = Assets::resolve_tiles( $settings['tiles'] );
 
@@ -413,7 +414,7 @@ class Map_Data {
 			unset( $shape );
 		}
 
-		$dynamic          = Sources::items( $data['source'], $context );
+		$dynamic          = $map_id ? Locations::get( $map_id, $data['source'], $context ) : Sources::items( $data['source'], $context );
 		$data['markers']  = array_merge( $data['markers'], $dynamic['markers'] );
 		$data['circles']  = array_merge( $data['circles'], $dynamic['circles'] );
 

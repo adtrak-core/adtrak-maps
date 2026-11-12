@@ -27,4 +27,8 @@ if ( is_array( $admaps_settings ) && ! empty( $admaps_settings['delete_on_uninst
 // Saved postcode lookups are only a cache, so they always go.
 delete_option( 'admaps_geocode' );
 delete_option( 'admaps_geocode_next' );
-wp_clear_scheduled_hook( 'admaps_geocode' );
+wp_unschedule_hook( 'admaps_geocode' );
+
+// Built locations stored on maps and pages are rebuilt on demand, so they always go too.
+global $wpdb;
+$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s OR meta_key LIKE %s", '_admaps_locations', $wpdb->esc_like( '_admaps_locations_' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
