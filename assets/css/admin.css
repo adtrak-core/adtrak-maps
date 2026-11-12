@@ -608,13 +608,38 @@ fieldset.admaps-field label {
 	border-left-color: #d63638;
 }
 
+#admaps-source .admaps-source-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px 24px;
+}
+
+#admaps-source .admaps-source-head .admaps-tab-intro {
+	flex: 1 1 auto;
+}
+
 #admaps-source .admaps-source-rebuild {
-	border-top: 1px solid #f0f0f1;
-	margin-top: 12px;
-	padding-top: 4px;
+	flex: 0 0 auto;
+	max-width: 14em;
+	margin: 1em 0;
+	text-align: right;
 }
 
 #admaps-source-built {
-	margin-left: 8px;
+	display: block;
+	margin-top: 4px;
 	color: #50575e;
+	font-size: 12px;
+}
+
+@media (max-width: 782px) {
+	#admaps-source .admaps-source-head {
+		flex-direction: column;
+	}
+
+	#admaps-source .admaps-source-rebuild {
+		max-width: none;
+		margin-top: 0;
+		text-align: left;
+	}
 }

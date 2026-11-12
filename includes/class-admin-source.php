@@ -146,7 +146,25 @@ class Admin_Source {
 			echo '</td></tr>';
 		};
 		?>
-		<p class="admaps-tab-intro"><?php esc_html_e( 'Show pins from an ACF repeater or a post type, as well as anything drawn on the map. The map reads them every time it is shown, so adding or editing a location there updates the map.', 'admaps' ); ?></p>
+		<div class="admaps-source-head">
+			<p class="admaps-tab-intro"><?php esc_html_e( 'Show pins from an ACF repeater or a post type, as well as anything drawn on the map. The locations are built when they are saved there, so adding or editing one updates the map. If locations were added another way (an import, or code), use Rebuild locations.', 'admaps' ); ?></p>
+			<?php if ( '' !== $s['type'] ) : ?>
+				<div class="admaps-source-rebuild">
+					<button type="button" class="button" id="admaps-source-rebuild"><?php esc_html_e( 'Rebuild locations', 'admaps' ); ?></button>
+					<span id="admaps-source-built" role="status" aria-live="polite">
+						<?php
+						$built = Locations::built_at( $post->ID );
+						if ( 'repeater' === $s['type'] && 'current' === $s['location'] ) {
+							esc_html_e( 'Built for each page when it is saved or first shown.', 'admaps' );
+						} elseif ( $built ) {
+							/* translators: %s: time ago, e.g. "5 mins" */
+							printf( esc_html__( 'Last built %s ago.', 'admaps' ), esc_html( human_time_diff( $built ) ) );
+						}
+						?>
+					</span>
+				</div>
+			<?php endif; ?>
+		</div>
 		<?php if ( ! Sources::has_acf() ) : ?>
 			<p class="description"><?php esc_html_e( 'Repeaters need Advanced Custom Fields Pro or Secure Custom Fields. Post types also work with plain custom fields.', 'admaps' ); ?></p>
 		<?php endif; ?>
@@ -325,25 +343,6 @@ class Admin_Source {
 
 		<p class="admaps-source-status" id="admaps-source-status" role="status" aria-live="polite" data-show="type=repeater|posts"></p>
 
-		<?php if ( '' !== $s['type'] ) : ?>
-			<div class="admaps-source-rebuild">
-				<p>
-					<button type="button" class="button" id="admaps-source-rebuild"><?php esc_html_e( 'Rebuild locations', 'admaps' ); ?></button>
-					<span id="admaps-source-built" role="status" aria-live="polite">
-						<?php
-						$built = Locations::built_at( $post->ID );
-						if ( 'repeater' === $s['type'] && 'current' === $s['location'] ) {
-							esc_html_e( 'Built for each page when it is saved or first shown.', 'admaps' );
-						} elseif ( $built ) {
-							/* translators: %s: time ago, e.g. "5 mins" */
-							printf( esc_html__( 'Last built %s ago.', 'admaps' ), esc_html( human_time_diff( $built ) ) );
-						}
-						?>
-					</span>
-				</p>
-				<p class="description"><?php esc_html_e( 'The map\'s locations are built when they are saved, not every time the map is shown. If locations were added another way (an import, or code), click this to pick them up. It uses the saved settings above.', 'admaps' ); ?></p>
-			</div>
-		<?php endif; ?>
 		<?php
 	}
 
