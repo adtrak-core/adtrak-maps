@@ -115,7 +115,7 @@
 	function sprintf( str ) {
 		var args = Array.prototype.slice.call( arguments, 1 );
 		var i = 0;
-		return str.replace( /%(\d+)\$d|%d/g, function ( match, pos ) {
+		return str.replace( /%(\d+)\$[ds]|%[ds]/g, function ( match, pos ) {
 			return pos ? args[ pos - 1 ] : args[ i++ ];
 		} );
 	}
@@ -1196,6 +1196,7 @@
 	var $source = $( '#admaps-source' );
 	var sourceLayer = L.layerGroup().addTo( map );
 	var sourceTimer = null;
+	var lastPending = null;
 	var sourceRequest = null;
 	var sourceFitted = false;
 
@@ -1339,12 +1340,33 @@
 			drawSourcePreview( data );
 			if ( data.current ) {
 				sourceStatus( SRC.i18n.current );
-			} else if ( data.error ) {
+				return;
+			}
+			if ( data.error ) {
 				sourceStatus( data.error, 'error' );
-			} else if ( ! data.markers.length ) {
-				sourceStatus( SRC.i18n.none + ( data.skipped ? ' ' + sprintf( SRC.i18n.skipped, data.skipped ) : '' ), 'error' );
+				return;
+			}
+
+			var notes  = [];
+			var failed = data.failed || [];
+			if ( data.pending ) {
+				notes.push( sprintf( SRC.i18n.pending, data.pending ) );
+			}
+			if ( failed.length ) {
+				notes.push( sprintf( SRC.i18n.notFound, failed.slice( 0, 10 ).join( ', ' ) + ( failed.length > 10 ? ' ' + sprintf( SRC.i18n.more, failed.length - 10 ) : '' ) ) );
+			}
+			if ( data.skipped ) {
+				notes.push( sprintf( $source.find( '[name="admaps_source[geocode]"]:checkbox' ).prop( 'checked' ) ? SRC.i18n.skipped : SRC.i18n.noLatLng, data.skipped ) );
+			}
+			var lead = data.markers.length ? sprintf( SRC.i18n.showing, data.markers.length ) : ( data.pending ? '' : SRC.i18n.none );
+			sourceStatus( [ lead ].concat( notes ).join( ' ' ).trim(), ! data.markers.length && ! data.pending ? 'error' : ( notes.length ? 'warning' : 'success' ) );
+
+			// Keep going while lookups are making progress.
+			if ( data.pending && data.pending !== lastPending ) {
+				lastPending = data.pending;
+				sourceTimer = window.setTimeout( loadSourcePreview, 1000 );
 			} else {
-				sourceStatus( sprintf( SRC.i18n.showing, data.markers.length ) + ( data.skipped ? ' ' + sprintf( SRC.i18n.skipped, data.skipped ) : '' ), data.skipped ? 'warning' : 'success' );
+				lastPending = null;
 			}
 		} ).fail( function ( xhr, status ) {
 			if ( status !== 'abort' ) {
@@ -1354,6 +1376,7 @@
 	}
 
 	function scheduleSourcePreview() {
+		lastPending = null;
 		window.clearTimeout( sourceTimer );
 		sourceTimer = window.setTimeout( loadSourcePreview, 500 );
 	}

@@ -41,6 +41,8 @@ class Sources {
 			'field'          => '',
 			'post_type'      => '',
 			'fields'         => array_fill_keys( self::FIELD_KEYS, '' ),
+			'geocode'        => true,
+			'country'        => 'gb',
 			'template'       => "<strong>{name}</strong>\n{address}\n{postcode}\n{phone}",
 			'pin_color'      => $items['pin_color'],
 			'directions'     => (bool) $items['directions'],
@@ -127,6 +129,15 @@ class Sources {
 		}
 		$out['legend_label'] = sanitize_text_field( (string) ( $raw['legend_label'] ?? '' ) );
 
+		// Missing means on, so maps saved before lookups existed get them.
+		if ( array_key_exists( 'geocode', $raw ) ) {
+			$out['geocode'] = ! empty( $raw['geocode'] ) && 'false' !== $raw['geocode'];
+		}
+		if ( isset( $raw['country'] ) ) {
+			$country        = strtolower( trim( (string) $raw['country'] ) );
+			$out['country'] = preg_match( '/^[a-z]{2}$/', $country ) ? $country : '';
+		}
+
 		if ( isset( $raw['radius'] ) && is_numeric( $raw['radius'] ) && (float) $raw['radius'] > 0 ) {
 			$out['radius'] = round( min( (float) $raw['radius'], 5000 ), 2 );
 		}
@@ -157,14 +168,17 @@ class Sources {
 	 *
 	 * @param array $source  Sanitised source settings.
 	 * @param int   $context ID of the post showing the map (for "the page showing the map").
-	 * @return array {markers, circles, total, skipped, error}
+	 * @param int   $budget  Most slow address lookups to make now (see Geocoder).
+	 * @return array {markers, circles, total, skipped, failed, pending, error}
 	 */
-	public static function items( array $source, int $context = 0 ): array {
+	public static function items( array $source, int $context = 0, int $budget = Geocoder::FRONT ): array {
 		$out = array(
 			'markers' => array(),
 			'circles' => array(),
 			'total'   => 0,
 			'skipped' => 0,
+			'failed'  => array(),
+			'pending' => 0,
 			'error'   => '',
 		);
 		if ( '' === $source['type'] ) {
@@ -180,9 +194,9 @@ class Sources {
 		$template = wpautop( do_shortcode( $source['template'] ) );
 		$factor   = self::UNITS[ $source['unit'] ];
 
+		$found    = array();
+		$requests = array();
 		foreach ( $rows as $index => $get ) {
-			++$out['total'];
-
 			$pos = null;
 			if ( '' !== $fields['map'] ) {
 				$map = $get( $fields['map'] );
@@ -193,8 +207,38 @@ class Sources {
 			if ( ! $pos && '' !== $fields['lat'] && '' !== $fields['lng'] ) {
 				$pos = Map_Data::sanitize_latlng( array( self::scalar( $get( $fields['lat'] ) ), self::scalar( $get( $fields['lng'] ) ) ) );
 			}
-			if ( ! $pos ) {
+			if ( ! $pos && $source['geocode'] ) {
+				$request = Geocoder::request(
+					'' !== $fields['postcode'] ? self::text( $get( $fields['postcode'] ) ) : '',
+					'' !== $fields['address'] ? self::text( $get( $fields['address'] ) ) : '',
+					$source['country']
+				);
+				if ( $request ) {
+					$requests[ $index ] = $request;
+				}
+			}
+			$found[ $index ] = $pos;
+		}
+
+		if ( $requests ) {
+			Geocoder::lookup( $requests, $budget );
+		}
+
+		foreach ( $rows as $index => $get ) {
+			++$out['total'];
+
+			$pos = $found[ $index ];
+			if ( ! $pos && isset( $requests[ $index ] ) ) {
+				$pos = Geocoder::find( $requests[ $index ] );
+				if ( false === $pos ) {
+					$out['failed'][] = sanitize_text_field( self::name( $fields, $get ) );
+				} elseif ( null === $pos ) {
+					++$out['pending'];
+				}
+			} elseif ( ! $pos ) {
 				++$out['skipped'];
+			}
+			if ( ! $pos ) {
 				continue;
 			}
 

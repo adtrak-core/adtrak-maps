@@ -48,7 +48,15 @@ class Admin_Source {
 					/* translators: %d: number of locations */
 					'showing'  => __( 'Showing %d locations, as they will appear on the map (faded here).', 'admaps' ),
 					/* translators: %d: number of locations */
-					'skipped'  => __( '%d skipped because they have no latitude and longitude.', 'admaps' ),
+					'skipped'  => __( '%d skipped because they have no latitude and longitude, postcode or address.', 'admaps' ),
+					/* translators: %d: number of locations */
+					'noLatLng' => __( '%d skipped because they have no latitude and longitude.', 'admaps' ),
+					/* translators: %s: list of location names */
+					'notFound' => __( 'Couldn\'t find the postcode or address for: %s. Check them, or give these latitude and longitude.', 'admaps' ),
+					/* translators: %d: number of locations */
+					'pending'  => __( '%d still being looked up…', 'admaps' ),
+					/* translators: %d: number of locations */
+					'more'     => __( 'and %d more', 'admaps' ),
 					'none'     => __( 'No locations found yet. Check the field names.', 'admaps' ),
 					'current'  => __( 'Locations come from the page showing the map, so they can\'t be previewed here.', 'admaps' ),
 					'loading'  => __( 'Loading locations…', 'admaps' ),
@@ -208,6 +216,19 @@ class Admin_Source {
 				$text( 'postcode', __( 'Postcode', 'admaps' ) );
 				$text( 'url', __( 'Link', 'admaps' ), __( 'A page to link to, as {url} in the bubble.', 'admaps' ) );
 				?>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'No latitude and longitude?', 'admaps' ); ?></th>
+					<td>
+						<input type="hidden" name="<?php echo esc_attr( $name ); ?>[geocode]" value="0">
+						<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[geocode]" value="1" <?php checked( $s['geocode'] ); ?>> <?php esc_html_e( 'Find the position from the postcode or address', 'admaps' ); ?></label>
+						<p class="description"><?php esc_html_e( 'UK postcodes are looked up with postcodes.io, anything else with OpenStreetMap. Each one is looked up once and saved, mostly in the background just after locations are saved. Latitude and longitude always win when a location has them.', 'admaps' ); ?></p>
+						<p>
+							<label for="admaps-source-country"><?php esc_html_e( 'Search in country', 'admaps' ); ?></label>
+							<input type="text" class="small-text code" id="admaps-source-country" name="<?php echo esc_attr( $name ); ?>[country]" value="<?php echo esc_attr( $s['country'] ); ?>" maxlength="2" placeholder="gb">
+						</p>
+						<p class="description"><?php esc_html_e( 'A two-letter country code (gb, ie, fr…) so addresses aren\'t matched abroad. Leave blank to search everywhere.', 'admaps' ); ?></p>
+					</td>
+				</tr>
 			</table>
 			<datalist id="admaps-source-fieldlist"></datalist>
 			<datalist id="admaps-source-repeaters"></datalist>
@@ -315,6 +336,6 @@ class Admin_Source {
 		if ( 'repeater' === $source['type'] && 'current' === $source['location'] ) {
 			wp_send_json_success( array( 'current' => true ) );
 		}
-		wp_send_json_success( Sources::items( $source ) );
+		wp_send_json_success( Sources::items( $source, 0, Geocoder::ADMIN ) );
 	}
 }

@@ -23,3 +23,8 @@ if ( is_array( $admaps_settings ) && ! empty( $admaps_settings['delete_on_uninst
 	}
 	delete_option( 'admaps_settings' );
 }
+
+// Saved postcode lookups are only a cache, so they always go.
+delete_option( 'admaps_geocode' );
+delete_option( 'admaps_geocode_next' );
+wp_clear_scheduled_hook( 'admaps_geocode' );
