@@ -190,6 +190,11 @@
 	color: #646970;
 }
 
+.admaps-items__dynamic {
+	border-top: 1px solid #f0f0f1;
+	font-size: 12px;
+}
+
 .admaps-item {
 	display: flex;
 	gap: 8px;
@@ -538,4 +543,128 @@ fieldset.admaps-field label {
 
 .admaps-editor__map.is-drawing .leaflet-interactive {
 	cursor: crosshair;
+}
+
+/* Dynamic locations box */
+#admaps-source [hidden] {
+	display: none !important;
+}
+
+#admaps-source .form-table th {
+	width: 180px;
+}
+
+#admaps-source .admaps-tab-intro {
+	max-width: 720px;
+	margin: 12px 0 0;
+	font-size: 14px;
+}
+
+#admaps-source .admaps-section-title {
+	margin: 24px 0 4px;
+	padding-top: 20px;
+	border-top: 1px solid #dcdcde;
+	font-size: 1.1em;
+}
+
+#admaps-source .admaps-section-intro {
+	max-width: 720px;
+	margin: 0;
+	color: #646970;
+}
+
+#admaps-source .admaps-section-title + .form-table,
+#admaps-source .admaps-section-intro + .form-table {
+	margin-top: 8px;
+}
+
+#admaps-source .admaps-inline-field {
+	display: inline-block;
+	margin: 4px 12px 4px 0;
+	vertical-align: top;
+}
+
+#admaps-source .wp-picker-container {
+	display: inline-block;
+	margin-right: 12px;
+	vertical-align: top;
+}
+
+.admaps-source-status {
+	margin: 16px 0 4px;
+	padding: 8px 12px;
+	border-left: 4px solid #72aee6;
+	background: #f6f7f7;
+}
+
+.admaps-source-status:empty {
+	display: none;
+}
+
+.admaps-source-status[data-kind="success"] {
+	border-left-color: #00a32a;
+}
+
+.admaps-source-status[data-kind="warning"] {
+	border-left-color: #dba617;
+}
+
+.admaps-source-status[data-kind="error"] {
+	border-left-color: #d63638;
+}
+
+#admaps-source .admaps-source-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px 24px;
+}
+
+#admaps-source .admaps-source-head .admaps-tab-intro {
+	flex: 1 1 auto;
+}
+
+#admaps-source .admaps-source-rebuild {
+	flex: 0 0 auto;
+	max-width: 14em;
+	margin: 1em 0;
+	text-align: right;
+}
+
+#admaps-source-built {
+	display: block;
+	margin-top: 4px;
+	color: #50575e;
+	font-size: 12px;
+}
+
+@media (max-width: 782px) {
+	#admaps-source .admaps-source-head {
+		flex-direction: column;
+	}
+
+	#admaps-source .admaps-source-rebuild {
+		max-width: none;
+		margin-top: 0;
+		text-align: left;
+	}
+}
+
+.admaps-pin-image {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.admaps-pin-image__preview:empty {
+	display: none;
+}
+
+.admaps-pin-image__preview img {
+	display: block;
+	max-width: 64px;
+	max-height: 64px;
+	padding: 4px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
 }

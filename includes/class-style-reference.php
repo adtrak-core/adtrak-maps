@@ -34,10 +34,12 @@ class Style_Reference {
 			__( 'Pins', 'admaps' )               => array(
 				'.admaps-pin'                => __( 'A coloured pin. The pin is an SVG inside it.', 'admaps' ),
 				'.admaps-icon-image'         => __( 'A pin that uses a custom image.', 'admaps' ),
+				'.admaps-pin.admaps-dynamic .admaps-icon-image.admaps-dynamic' => __( 'A pin from Dynamic locations (an ACF repeater or posts) rather than drawn on the map.', 'admaps' ),
 				'.marker-cluster .marker-cluster-small .marker-cluster-medium .marker-cluster-large' => __( 'Grouped pins, when clustering is on. Small, medium and large reflect how many pins are grouped.', 'admaps' ),
 			),
 			__( 'Radii and areas', 'admaps' )    => array(
 				'.leaflet-overlay-pane path.leaflet-interactive' => __( 'Radius circles and areas are SVG paths. Their colours are set per item, but CSS fill, stroke and opacity rules override them.', 'admaps' ),
+				'path.admaps-dynamic'                            => __( 'A coverage radius from Dynamic locations.', 'admaps' ),
 			),
 			__( 'Info bubbles and labels', 'admaps' ) => array(
 				'.leaflet-popup'                 => __( 'The whole bubble, including its pointer.', 'admaps' ),
@@ -113,6 +115,16 @@ class Style_Reference {
 					</tbody>
 				</table>
 			<?php endforeach; ?>
+
+			<h2 class="admaps-section-title"><?php esc_html_e( 'Dynamic locations', 'admaps' ); ?></h2>
+			<p class="admaps-section-intro"><?php esc_html_e( 'Pins and radii from a map\'s Dynamic locations box use the same markup as drawn ones, plus the admaps-dynamic class, so they can be styled apart. For example, to make dynamic radii dashed and lift dynamic pins on hover:', 'admaps' ); ?></p>
+			<pre class="admaps-code"><code>body .admaps-map path.admaps-dynamic {
+  stroke-dasharray: 6 4;
+}
+
+body .admaps-map .leaflet-marker-icon.admaps-dynamic:hover {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .35));
+}</code></pre>
 
 			<h2 class="admaps-section-title"><?php esc_html_e( 'Adding your own class', 'admaps' ); ?></h2>
 			<p class="admaps-section-intro"><?php esc_html_e( 'Add classes to one map\'s outer element with the shortcode, then target them in your CSS. Use plain class names: WordPress strips characters such as [ ] : and /, so Tailwind utility classes with arbitrary values or variants won\'t survive.', 'admaps' ); ?></p>

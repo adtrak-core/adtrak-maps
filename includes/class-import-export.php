@@ -93,6 +93,7 @@ class Import_Export {
 				$marker['icon']['attachment_id'] = 0;
 			}
 			unset( $marker );
+			$data['source']['icon']['attachment_id'] = 0;
 
 			$maps[] = array(
 				'title'  => $post->post_title,

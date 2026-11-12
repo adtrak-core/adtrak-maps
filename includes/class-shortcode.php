@@ -41,6 +41,7 @@ class Shortcode {
 				'height' => '',
 				'zoom'   => '',
 				'class'  => '',
+				'source' => '',
 			),
 			$atts,
 			'admaps'
@@ -63,7 +64,17 @@ class Shortcode {
 			$height = $settings['height'];
 		}
 
-		$config = Map_Data::to_frontend( $data );
+		// source="current", "options" or a post ID: where a repeater source reads from on this page.
+		$where = strtolower( trim( (string) $atts['source'] ) );
+		if ( in_array( $where, array( 'current', 'options' ), true ) ) {
+			$data['source']['location'] = $where;
+		} elseif ( ctype_digit( $where ) ) {
+			$data['source']['location'] = 'post';
+			$data['source']['post_id']  = (int) $where;
+		}
+
+		$context = (int) ( in_the_loop() ? get_the_ID() : get_queried_object_id() );
+		$config  = Map_Data::to_frontend( $data, $context, $map_id );
 		if ( is_numeric( $atts['zoom'] ) ) {
 			$config['settings']['zoom']       = max( 0, min( 22, (int) $atts['zoom'] ) );
 			$config['settings']['fit_bounds'] = false;

@@ -44,6 +44,7 @@ class Admin_Editor {
 		add_meta_box( 'admaps-editor', __( 'Map', 'admaps' ), array( __CLASS__, 'render_editor' ), Post_Type::NAME, 'normal', 'high' );
 		add_meta_box( 'admaps-shortcode', __( 'Shortcode', 'admaps' ), array( __CLASS__, 'render_shortcode' ), Post_Type::NAME, 'side', 'high' );
 		add_meta_box( 'admaps-settings', __( 'Map settings', 'admaps' ), array( __CLASS__, 'render_settings' ), Post_Type::NAME, 'side', 'default' );
+		Admin_Source::meta_box();
 		add_meta_box( 'admaps-appearance', __( 'Appearance', 'admaps' ), array( __CLASS__, 'render_appearance' ), Post_Type::NAME, 'normal', 'default' );
 		add_filter( 'postbox_classes_' . Post_Type::NAME . '_admaps-appearance', array( __CLASS__, 'appearance_box_classes' ) );
 	}
@@ -66,7 +67,7 @@ class Admin_Editor {
 	 *
 	 * @return bool
 	 */
-	private static function is_editor_screen(): bool {
+	public static function is_editor_screen(): bool {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		return $screen && 'post' === $screen->base && Post_Type::NAME === $screen->post_type;
 	}
@@ -146,6 +147,12 @@ class Admin_Editor {
 					'bubbleEmpty'     => __( 'This bubble is empty, so it won\'t open on the live map.', 'admaps' ),
 					'labelPlaceholder' => __( 'Shown on hover and in the legend', 'admaps' ),
 					'noItems'         => __( 'Nothing on this map yet. Use the buttons above to add a pin, radius or area.', 'admaps' ),
+					/* translators: %d: number of locations */
+					'dynamicOnly'     => __( 'This map is showing %d dynamic locations, set up in Dynamic locations below, so they aren\'t listed here. To add your own pins, radii or areas as well, use the buttons above.', 'admaps' ),
+					'dynamicPage'     => __( 'This map shows dynamic locations from the page it is placed on, set up in Dynamic locations below. To add your own pins, radii or areas as well, use the buttons above.', 'admaps' ),
+					/* translators: %d: number of locations */
+					'dynamicExtra'    => __( 'Plus %d dynamic locations, set up in Dynamic locations below.', 'admaps' ),
+					'dynamicPageExtra' => __( 'Plus dynamic locations from the page the map is placed on.', 'admaps' ),
 					'deleteConfirm'   => __( 'Delete this item?', 'admaps' ),
 					'chooseImage'     => __( 'Choose pin image', 'admaps' ),
 					'useImage'        => __( 'Use this image', 'admaps' ),
@@ -368,6 +375,9 @@ class Admin_Editor {
 			$settings = array_merge( $settings, wp_unslash( $_POST['admaps_settings'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised by Map_Data.
 		}
 		$data['settings'] = $settings;
+		$data['source']   = isset( $_POST['admaps_source'] ) && is_array( $_POST['admaps_source'] )
+			? wp_unslash( $_POST['admaps_source'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised by Sources.
+			: $existing['source'];
 
 		Map_Data::save( $post_id, $data );
 	}
