@@ -49,11 +49,11 @@ class Admin_Source {
 					/* translators: %d: number of locations */
 					'showing'  => __( 'Showing %d locations, as they will appear on the map (faded here).', 'admaps' ),
 					/* translators: %d: number of locations */
-					'skipped'  => __( '%d skipped because they have no latitude and longitude, postcode or address.', 'admaps' ),
+					'skipped'  => __( '%d skipped because they have no latitude and longitude, postcode / ZIP code or address.', 'admaps' ),
 					/* translators: %d: number of locations */
 					'noLatLng' => __( '%d skipped because they have no latitude and longitude.', 'admaps' ),
 					/* translators: %s: list of location names */
-					'notFound' => __( 'Couldn\'t find the postcode or address for: %s. Check them, or give these latitude and longitude.', 'admaps' ),
+					'notFound' => __( 'Couldn\'t find the postcode / ZIP code or address for: %s. Check them, or give these latitude and longitude.', 'admaps' ),
 					/* translators: %d: number of locations */
 					'pending'  => __( '%d still being looked up…', 'admaps' ),
 					/* translators: %d: number of locations */
@@ -218,20 +218,20 @@ class Admin_Source {
 				$text( 'map', __( 'Google Map field', 'admaps' ), __( 'Use instead of latitude and longitude if the locations use ACF\'s Google Map field.', 'admaps' ) );
 				$text( 'phone', __( 'Phone', 'admaps' ) );
 				$text( 'address', __( 'Address', 'admaps' ) );
-				$text( 'postcode', __( 'Postcode', 'admaps' ) );
+				$text( 'postcode', __( 'Postcode / ZIP code', 'admaps' ) );
 				$text( 'url', __( 'Link', 'admaps' ), __( 'A page to link to, as {url} in the bubble.', 'admaps' ) );
 				?>
 				<tr>
 					<th scope="row"><?php esc_html_e( 'No latitude and longitude?', 'admaps' ); ?></th>
 					<td>
 						<input type="hidden" name="<?php echo esc_attr( $name ); ?>[geocode]" value="0">
-						<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[geocode]" value="1" <?php checked( $s['geocode'] ); ?>> <?php esc_html_e( 'Find the position from the postcode or address', 'admaps' ); ?></label>
-						<p class="description"><?php esc_html_e( 'UK postcodes are looked up with postcodes.io, anything else with OpenStreetMap. Each one is looked up once and saved, mostly in the background just after locations are saved. Latitude and longitude always win when a location has them.', 'admaps' ); ?></p>
+						<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[geocode]" value="1" <?php checked( $s['geocode'] ); ?>> <?php esc_html_e( 'Find the position from the postcode / ZIP code or address', 'admaps' ); ?></label>
+						<p class="description"><?php esc_html_e( 'UK postcodes are looked up with postcodes.io; ZIP codes, other postcodes and addresses with OpenStreetMap. Each one is looked up once and saved, mostly in the background just after locations are saved. Latitude and longitude always win when a location has them.', 'admaps' ); ?></p>
 						<p>
 							<label for="admaps-source-country"><?php esc_html_e( 'Search in country', 'admaps' ); ?></label>
 							<input type="text" class="small-text code" id="admaps-source-country" name="<?php echo esc_attr( $name ); ?>[country]" value="<?php echo esc_attr( $s['country'] ); ?>" maxlength="2" placeholder="gb">
 						</p>
-						<p class="description"><?php esc_html_e( 'A two-letter country code (gb, ie, fr…) so addresses aren\'t matched abroad. Leave blank to search everywhere.', 'admaps' ); ?></p>
+						<p class="description"><?php esc_html_e( 'A two-letter country code (gb, us, ie…) so postcodes, ZIP codes and addresses aren\'t matched abroad. Use us on US sites. Leave blank to search everywhere.', 'admaps' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -246,7 +246,7 @@ class Admin_Source {
 						<textarea class="large-text code" rows="5" id="admaps-source-template" name="<?php echo esc_attr( $name ); ?>[template]"><?php echo esc_textarea( $s['template'] ); ?></textarea>
 						<p class="description">
 							<?php esc_html_e( 'HTML is allowed. Placeholders:', 'admaps' ); ?>
-							<code>{name}</code> <code>{address}</code> <code>{postcode}</code> <code>{phone}</code> <code>{url}</code>.
+							<code>{name}</code> <code>{address}</code> <code>{postcode}</code> (or <code>{zip}</code>) <code>{phone}</code> <code>{url}</code>.
 							<?php esc_html_e( 'The phone number becomes a tap-to-call link. Any other field can be used by its name, e.g. {email}. Lines left empty by a location are removed.', 'admaps' ); ?>
 						</p>
 					</td>

@@ -424,6 +424,9 @@ class Sources {
 						$phone = trim( self::text( '' !== $fields['phone'] ? $get( $fields['phone'] ) : '' ) );
 						$tel   = preg_replace( '/[^0-9+]/', '', $phone );
 						return '' === $tel ? esc_html( $phone ) : '<a href="' . esc_attr( 'tel:' . $tel ) . '">' . esc_html( $phone ) . '</a>';
+					case 'zip':
+						$key = 'postcode';
+						// Falls through: {zip} is the same as {postcode}.
 					case 'address':
 					case 'postcode':
 						$value = '' !== $fields[ $key ] ? $get( $fields[ $key ] ) : '';
