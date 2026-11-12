@@ -539,3 +539,71 @@ fieldset.admaps-field label {
 .admaps-editor__map.is-drawing .leaflet-interactive {
 	cursor: crosshair;
 }
+
+/* Dynamic locations box */
+#admaps-source [hidden] {
+	display: none !important;
+}
+
+#admaps-source .form-table th {
+	width: 180px;
+}
+
+#admaps-source .admaps-tab-intro {
+	max-width: 720px;
+	margin: 12px 0 0;
+	font-size: 14px;
+}
+
+#admaps-source .admaps-section-title {
+	margin: 24px 0 4px;
+	padding-top: 20px;
+	border-top: 1px solid #dcdcde;
+	font-size: 1.1em;
+}
+
+#admaps-source .admaps-section-intro {
+	max-width: 720px;
+	margin: 0;
+	color: #646970;
+}
+
+#admaps-source .admaps-section-title + .form-table,
+#admaps-source .admaps-section-intro + .form-table {
+	margin-top: 8px;
+}
+
+#admaps-source .admaps-inline-field {
+	display: inline-block;
+	margin: 4px 12px 4px 0;
+	vertical-align: top;
+}
+
+#admaps-source .wp-picker-container {
+	display: inline-block;
+	margin-right: 12px;
+	vertical-align: top;
+}
+
+.admaps-source-status {
+	margin: 16px 0 4px;
+	padding: 8px 12px;
+	border-left: 4px solid #72aee6;
+	background: #f6f7f7;
+}
+
+.admaps-source-status:empty {
+	display: none;
+}
+
+.admaps-source-status[data-kind="success"] {
+	border-left-color: #00a32a;
+}
+
+.admaps-source-status[data-kind="warning"] {
+	border-left-color: #dba617;
+}
+
+.admaps-source-status[data-kind="error"] {
+	border-left-color: #d63638;
+}

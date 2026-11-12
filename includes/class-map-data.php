@@ -81,6 +81,7 @@ class Map_Data {
 			'markers'  => array(),
 			'circles'  => array(),
 			'polygons' => array(),
+			'source'   => Sources::defaults(),
 		);
 	}
 
@@ -127,6 +128,7 @@ class Map_Data {
 
 		$out             = self::empty_data();
 		$out['settings'] = self::sanitize_settings( isset( $raw['settings'] ) && is_array( $raw['settings'] ) ? $raw['settings'] : array() );
+		$out['source']   = Sources::sanitize( $raw['source'] ?? array() );
 
 		$types = array(
 			'markers'  => 'sanitize_marker',
@@ -386,10 +388,11 @@ class Map_Data {
 	/**
 	 * Build the config passed to the front-end script.
 	 *
-	 * @param array $data Sanitised data.
+	 * @param array $data    Sanitised data.
+	 * @param int   $context ID of the post showing the map, for dynamic locations.
 	 * @return array
 	 */
-	public static function to_frontend( array $data ): array {
+	public static function to_frontend( array $data, int $context = 0 ): array {
 		$settings = $data['settings'];
 		$tiles    = Assets::resolve_tiles( $settings['tiles'] );
 
@@ -409,6 +412,10 @@ class Map_Data {
 			}
 			unset( $shape );
 		}
+
+		$dynamic          = Sources::items( $data['source'], $context );
+		$data['markers']  = array_merge( $data['markers'], $dynamic['markers'] );
+		$data['circles']  = array_merge( $data['circles'], $dynamic['circles'] );
 
 		$style = Appearance::resolve( $settings['style'] );
 		unset( $settings['tiles'], $settings['height'], $settings['style'] );

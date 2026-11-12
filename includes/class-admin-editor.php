@@ -44,6 +44,7 @@ class Admin_Editor {
 		add_meta_box( 'admaps-editor', __( 'Map', 'admaps' ), array( __CLASS__, 'render_editor' ), Post_Type::NAME, 'normal', 'high' );
 		add_meta_box( 'admaps-shortcode', __( 'Shortcode', 'admaps' ), array( __CLASS__, 'render_shortcode' ), Post_Type::NAME, 'side', 'high' );
 		add_meta_box( 'admaps-settings', __( 'Map settings', 'admaps' ), array( __CLASS__, 'render_settings' ), Post_Type::NAME, 'side', 'default' );
+		Admin_Source::meta_box();
 		add_meta_box( 'admaps-appearance', __( 'Appearance', 'admaps' ), array( __CLASS__, 'render_appearance' ), Post_Type::NAME, 'normal', 'default' );
 		add_filter( 'postbox_classes_' . Post_Type::NAME . '_admaps-appearance', array( __CLASS__, 'appearance_box_classes' ) );
 	}
@@ -66,7 +67,7 @@ class Admin_Editor {
 	 *
 	 * @return bool
 	 */
-	private static function is_editor_screen(): bool {
+	public static function is_editor_screen(): bool {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		return $screen && 'post' === $screen->base && Post_Type::NAME === $screen->post_type;
 	}
@@ -368,6 +369,9 @@ class Admin_Editor {
 			$settings = array_merge( $settings, wp_unslash( $_POST['admaps_settings'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised by Map_Data.
 		}
 		$data['settings'] = $settings;
+		$data['source']   = isset( $_POST['admaps_source'] ) && is_array( $_POST['admaps_source'] )
+			? wp_unslash( $_POST['admaps_source'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised by Sources.
+			: $existing['source'];
 
 		Map_Data::save( $post_id, $data );
 	}

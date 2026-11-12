@@ -22,10 +22,12 @@ define( 'ADMAPS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ADMAPS_URL', plugin_dir_url( __FILE__ ) );
 
 require_once ADMAPS_PATH . 'includes/class-map-data.php';
+require_once ADMAPS_PATH . 'includes/class-sources.php';
 require_once ADMAPS_PATH . 'includes/class-assets.php';
 require_once ADMAPS_PATH . 'includes/class-post-type.php';
 require_once ADMAPS_PATH . 'includes/class-shortcode.php';
 require_once ADMAPS_PATH . 'includes/class-admin-editor.php';
+require_once ADMAPS_PATH . 'includes/class-admin-source.php';
 require_once ADMAPS_PATH . 'includes/class-import-export.php';
 require_once ADMAPS_PATH . 'includes/class-settings.php';
 require_once ADMAPS_PATH . 'includes/class-style-reference.php';
@@ -44,6 +46,7 @@ add_action(
 
 		if ( is_admin() ) {
 			\Admaps\Admin_Editor::init();
+			\Admaps\Admin_Source::init();
 			\Admaps\Import_Export::init();
 			\Admaps\Settings::init();
 		}

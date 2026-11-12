@@ -140,17 +140,18 @@
 
 		[ 'polygons', 'circles', 'markers' ].forEach( function ( type ) {
 			( cfg[ type ] || [] ).forEach( function ( item ) {
-				if ( ! item.legend || ! item.label ) {
+				var label = item.legend_label || item.label;
+				if ( ! item.legend || ! label ) {
 					return;
 				}
 				var key = type === 'markers'
-					? 'm|' + item.label + '|' + JSON.stringify( item.icon || {} )
-					: 's|' + item.label + '|' + item.stroke + '|' + item.fill + '|' + item.fill_opacity;
+					? 'm|' + label + '|' + JSON.stringify( item.icon || {} )
+					: 's|' + label + '|' + item.stroke + '|' + item.fill + '|' + item.fill_opacity;
 				if ( seen[ key ] ) {
 					return;
 				}
 				seen[ key ] = true;
-				rows.push( '<li>' + swatch( type, item ) + '<span>' + escapeHtml( item.label ) + '</span></li>' );
+				rows.push( '<li>' + swatch( type, item ) + '<span>' + escapeHtml( label ) + '</span></li>' );
 			} );
 		} );
 

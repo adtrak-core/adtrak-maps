@@ -72,6 +72,7 @@
 	var layers = {};
 	var selected = null;
 	var drawingType = null;
+	var sourcePreview = { markers: [], circles: [] };
 	var editorActive = false;
 	var previewPopup = null;
 	var previewTimer = null;
@@ -320,7 +321,10 @@
 			legendCtl = null;
 		}
 		if ( state.settings.legend ) {
-			legendCtl = R.legendControl( state );
+			legendCtl = R.legendControl( $.extend( {}, state, {
+				markers: state.markers.concat( sourcePreview.markers ),
+				circles: state.circles.concat( sourcePreview.circles )
+			} ) );
 			if ( legendCtl ) {
 				legendCtl.addTo( map );
 			}
@@ -1185,6 +1189,192 @@
 		readEditor();
 		sync();
 	} );
+
+	/* ---------- dynamic locations ---------- */
+
+	var SRC = window.admapsSource || { fields: { repeaters: {}, postTypes: {} }, i18n: {} };
+	var $source = $( '#admaps-source' );
+	var sourceLayer = L.layerGroup().addTo( map );
+	var sourceTimer = null;
+	var sourceRequest = null;
+	var sourceFitted = false;
+
+	// Common field names, used to fill in obvious matches.
+	var GUESSES = {
+		name: [ 'name', 'title', 'location_name', 'depot_name', 'branch_name' ],
+		lat: [ 'lat', 'latitude' ],
+		lng: [ 'lng', 'lon', 'long', 'longitude' ],
+		phone: [ 'phone', 'telephone', 'tel', 'phone_number', 'telephone_number' ],
+		address: [ 'address', 'street_address', 'address_1' ],
+		postcode: [ 'postcode', 'post_code', 'postal_code', 'zip', 'zipcode' ],
+		url: [ 'url', 'link', 'website', 'page' ],
+		radius: [ 'radius', 'coverage_radius', 'coverage', 'miles' ]
+	};
+
+	function sourceValues() {
+		return {
+			type: $( '#admaps-source-type' ).val(),
+			location: $( '#admaps-source-location' ).val(),
+			radius: $( '#admaps-source-radius-mode' ).val()
+		};
+	}
+
+	function toggleSourceFields() {
+		var values = sourceValues();
+		$source.find( '[data-show]' ).each( function () {
+			var show = this.getAttribute( 'data-show' ).split( ' ' ).every( function ( rule ) {
+				var parts = rule.split( '=' );
+				return parts[ 1 ].split( '|' ).indexOf( values[ parts[ 0 ] ] ) !== -1;
+			} );
+			this.hidden = ! show;
+		} );
+	}
+
+	function availableFields() {
+		var values = sourceValues();
+		if ( values.type === 'repeater' ) {
+			var repeater = SRC.fields.repeaters[ $( '#admaps-source-field' ).val() ];
+			return repeater ? repeater.subs : [];
+		}
+		if ( values.type === 'posts' ) {
+			return SRC.fields.postTypes[ $( '#admaps-source-post-type' ).val() ] || [];
+		}
+		return [];
+	}
+
+	function refreshFieldLists( guess ) {
+		var option = function ( f ) {
+			return '<option value="' + esc( f.name ) + '">' + esc( f.label ) + '</option>';
+		};
+		$( '#admaps-source-repeaters' ).html( Object.keys( SRC.fields.repeaters ).map( function ( name ) {
+			return option( { name: name, label: SRC.fields.repeaters[ name ].label } );
+		} ).join( '' ) );
+
+		var fields = availableFields();
+		$( '#admaps-source-fieldlist' ).html( fields.map( option ).join( '' ) );
+
+		var posts = sourceValues().type === 'posts';
+		$( '#admaps-source-f-name' ).attr( 'placeholder', posts ? SRC.i18n.postType : '' );
+		$( '#admaps-source-f-url' ).attr( 'placeholder', posts ? SRC.i18n.postUrl : '' );
+
+		if ( guess !== true ) {
+			return;
+		}
+		// Fill in obvious matches for empty boxes only.
+		$source.find( '[data-source-field]' ).each( function () {
+			var key = this.getAttribute( 'data-source-field' );
+			if ( this.value ) {
+				return;
+			}
+			var match = fields.filter( function ( f ) {
+				return key === 'map' ? f.type === 'google_map' : ( GUESSES[ key ] || [] ).indexOf( f.name.toLowerCase() ) !== -1;
+			} )[ 0 ];
+			if ( match && ! ( posts && key === 'name' ) ) {
+				this.value = match.name;
+			}
+		} );
+	}
+
+	function sourceStatus( text, kind ) {
+		$( '#admaps-source-status' ).text( text || '' ).attr( 'data-kind', kind || '' );
+	}
+
+	function drawSourcePreview( result ) {
+		sourceLayer.clearLayers();
+		sourcePreview = { markers: result.markers || [], circles: result.circles || [] };
+
+		sourcePreview.circles.forEach( function ( item ) {
+			R.circleLayer( $.extend( {}, item, { fill_opacity: item.fill_opacity * 0.6, stroke_opacity: item.stroke_opacity * 0.6 } ) )
+				.setStyle( { interactive: false } )
+				.addTo( sourceLayer );
+		} );
+		sourcePreview.markers.forEach( function ( item ) {
+			var marker = R.markerLayer( item, { opacity: 0.7, keyboard: false } ).addTo( sourceLayer );
+			if ( item.label ) {
+				marker.bindTooltip( esc( item.label ), { direction: 'top' } );
+			}
+			marker.on( 'click', function ( e ) {
+				if ( drawingType || map.pm.globalDrawModeEnabled() ) {
+					return;
+				}
+				L.DomEvent.stopPropagation( e );
+				var html = ( item.popup || '' ) + ( item.directions ? R.directionsLink( item, cfg ) : '' );
+				if ( html ) {
+					L.popup( R.popupOptions( item, { minWidth: POPUP_SIZE.min, maxWidth: POPUP_SIZE.max } ), marker )
+						.setLatLng( marker.getLatLng() ).setContent( html ).openOn( map );
+				}
+			} );
+		} );
+
+		if ( ! sourceFitted && sourcePreview.markers.length && ! allBounds().isValid() ) {
+			sourceFitted = true;
+			map.fitBounds( sourceLayer.getLayers().reduce( function ( b, layer ) {
+				return b.extend( layer.getBounds ? layer.getBounds() : layer.getLatLng() );
+			}, L.latLngBounds( [] ) ), { padding: [ 30, 30 ], maxZoom: 13 } );
+		}
+		refreshLegend();
+	}
+
+	function loadSourcePreview() {
+		var values = sourceValues();
+		if ( sourceRequest ) {
+			sourceRequest.abort();
+		}
+		if ( ! values.type ) {
+			drawSourcePreview( {} );
+			sourceStatus( '' );
+			return;
+		}
+		sourceStatus( SRC.i18n.loading );
+		sourceRequest = $.post( window.ajaxurl, $source.find( ':input' ).serialize() + '&' + $.param( {
+			action: 'admaps_source_preview',
+			nonce: SRC.nonce,
+			post_id: $( '#post_ID' ).val()
+		} ) ).done( function ( response ) {
+			var data = response && response.data;
+			if ( ! response || ! response.success || ! data ) {
+				sourceStatus( SRC.i18n.failed, 'error' );
+				return;
+			}
+			drawSourcePreview( data );
+			if ( data.current ) {
+				sourceStatus( SRC.i18n.current );
+			} else if ( data.error ) {
+				sourceStatus( data.error, 'error' );
+			} else if ( ! data.markers.length ) {
+				sourceStatus( SRC.i18n.none + ( data.skipped ? ' ' + sprintf( SRC.i18n.skipped, data.skipped ) : '' ), 'error' );
+			} else {
+				sourceStatus( sprintf( SRC.i18n.showing, data.markers.length ) + ( data.skipped ? ' ' + sprintf( SRC.i18n.skipped, data.skipped ) : '' ), data.skipped ? 'warning' : 'success' );
+			}
+		} ).fail( function ( xhr, status ) {
+			if ( status !== 'abort' ) {
+				sourceStatus( SRC.i18n.failed, 'error' );
+			}
+		} );
+	}
+
+	function scheduleSourcePreview() {
+		window.clearTimeout( sourceTimer );
+		sourceTimer = window.setTimeout( loadSourcePreview, 500 );
+	}
+
+	if ( $source.length ) {
+		$source.on( 'change', 'select', function () {
+			toggleSourceFields();
+			refreshFieldLists( this.id === 'admaps-source-type' || this.id === 'admaps-source-post-type' );
+		} );
+		$source.on( 'change', '#admaps-source-field', function () {
+			refreshFieldLists( true );
+		} );
+		$source.on( 'input change', ':input', scheduleSourcePreview );
+		$source.find( '.admaps-color-field' ).wpColorPicker( {
+			change: scheduleSourcePreview,
+			clear: scheduleSourcePreview
+		} );
+		toggleSourceFields();
+		refreshFieldLists();
+		loadSourcePreview();
+	}
 
 	/* ---------- boot ---------- */
 
