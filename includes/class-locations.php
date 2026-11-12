@@ -75,7 +75,8 @@ class Locations {
 		if ( isset( $entries[ $hash ]['result'] ) ) {
 			return $entries[ $hash ]['result'];
 		}
-		return self::build( $holder, $key, $source, $context, Geocoder::FRONT );
+		// Someone is viewing the site: use saved lookups only, and never queue any.
+		return self::build( $holder, $key, $source, $context, Geocoder::CACHED, false );
 	}
 
 	/**
@@ -281,13 +282,13 @@ class Locations {
 		foreach ( self::dynamic_maps() as $map_id => $source ) {
 			if ( isset( $saved[ $map_id ] ) ) {
 				if ( ! self::per_page( $source ) ) {
-					self::build( $map_id, self::META, $source, 0, Geocoder::FRONT );
+					self::build( $map_id, self::META, $source, 0, Geocoder::SAVE );
 				}
 				continue;
 			}
 			foreach ( self::entries( $map_id, self::META ) as $entry ) {
 				if ( isset( $entry['source'] ) && self::affected( $entry['source'], $changes ) ) {
-					self::build( $map_id, self::META, $entry['source'], 0, Geocoder::FRONT );
+					self::build( $map_id, self::META, $entry['source'], 0, Geocoder::SAVE );
 				}
 			}
 			foreach ( $changes as $change ) {
@@ -296,7 +297,7 @@ class Locations {
 				}
 				foreach ( self::entries( $change[1], self::META . '_' . $map_id ) as $entry ) {
 					if ( isset( $entry['source'] ) ) {
-						self::build( $change[1], self::META . '_' . $map_id, $entry['source'], $change[1], Geocoder::FRONT );
+						self::build( $change[1], self::META . '_' . $map_id, $entry['source'], $change[1], Geocoder::SAVE );
 					}
 				}
 			}

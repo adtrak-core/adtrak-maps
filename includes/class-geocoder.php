@@ -16,14 +16,17 @@ defined( 'ABSPATH' ) || exit;
  * usage policy asks. Results are saved, so each postcode or address is only
  * looked up once; ones that can't be found are tried again a day later.
  *
- * Lookups happen when locations are built (see Locations): a few straight
- * away, the rest in the background.
+ * Lookups only happen when locations are built from the admin side: a few
+ * while saving, the rest in the background, or more in the editor. A build
+ * triggered by someone viewing the site (CACHED) only uses saved results and
+ * never contacts either service.
  */
 class Geocoder {
 
 	const OPTION      = 'admaps_geocode';
 	const HOOK        = 'admaps_geocode';
-	const FRONT       = 1;
+	const CACHED      = 0;
+	const SAVE        = 1;
 	const ADMIN       = 8;
 	const BACKGROUND  = 40;
 	const RETRY_AFTER = 86400;
@@ -97,9 +100,12 @@ class Geocoder {
 	 * Look up anything not already saved.
 	 *
 	 * @param array[] $requests From request().
-	 * @param int     $budget   Most Nominatim requests to make (FRONT, ADMIN or BACKGROUND).
+	 * @param int     $budget   CACHED (no requests at all), or the most Nominatim requests to make (SAVE, ADMIN or BACKGROUND).
 	 */
 	public static function lookup( array $requests, int $budget ): void {
+		if ( $budget <= self::CACHED ) {
+			return;
+		}
 		$todo = array();
 		foreach ( $requests as $request ) {
 			if ( null === self::find( $request ) ) {
@@ -135,7 +141,7 @@ class Geocoder {
 			}
 		}
 
-		$wait = $budget > self::FRONT;
+		$wait = $budget > self::SAVE;
 		foreach ( array_slice( $slow, 0, max( 0, $budget ), true ) as $key => $request ) {
 			$result = self::nominatim( $request['query'], $request['country'], $wait );
 			if ( null === $result ) {

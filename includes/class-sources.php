@@ -168,10 +168,10 @@ class Sources {
 	 *
 	 * @param array $source  Sanitised source settings.
 	 * @param int   $context ID of the post showing the map (for "the page showing the map").
-	 * @param int   $budget  Most slow address lookups to make now (see Geocoder).
+	 * @param int   $budget  Lookups allowed now (see Geocoder); by default only saved results are used.
 	 * @return array {markers, circles, total, skipped, failed, pending, error}
 	 */
-	public static function items( array $source, int $context = 0, int $budget = Geocoder::FRONT ): array {
+	public static function items( array $source, int $context = 0, int $budget = Geocoder::CACHED ): array {
 		$out = array(
 			'markers' => array(),
 			'circles' => array(),
