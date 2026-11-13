@@ -1430,7 +1430,7 @@
 				post_id: $( '#post_ID' ).val()
 			} ).done( function ( response ) {
 				var data = response && response.success && response.data;
-				$built.text( ! data ? SRC.i18n.failed : ( data.per_page ? SRC.i18n.perPage : sprintf( SRC.i18n.rebuilt, data.count ) ) );
+				$built.text( ! data ? SRC.i18n.failed : ( data.per_page ? sprintf( SRC.i18n.perPage, data.pages ) : sprintf( SRC.i18n.rebuilt, data.count ) ) );
 			} ).fail( function () {
 				$built.text( SRC.i18n.failed );
 			} ).always( function () {

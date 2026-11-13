@@ -61,5 +61,6 @@ register_deactivation_hook(
 	__FILE__,
 	static function () {
 		wp_unschedule_hook( 'admaps_geocode' );
+		wp_unschedule_hook( 'admaps_locations_refresh' );
 	}
 );

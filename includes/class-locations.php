@@ -13,22 +13,27 @@ defined( 'ABSPATH' ) || exit;
  * A map's dynamic pins and radii are built once and stored, so showing a map
  * never reads the repeater or the location posts. They are rebuilt when:
  *
- * - the map is saved (or imported, or duplicated);
+ * - the map is saved (or imported, or duplicated): every stored copy, including each page's;
  * - an ACF options page is saved, for maps reading an options page;
  * - a location post is saved, trashed or deleted, for maps reading that post type;
  * - a page is saved, for maps reading a repeater on that page;
  * - background postcode lookups finish;
- * - someone clicks "Rebuild locations" on the map.
+ * - someone clicks "Rebuild locations" on the map;
+ * - the plugin is updated (in the background, from saved lookups only).
  *
  * Results are stored on the map (meta `_admaps_locations`), or on the page for
  * maps reading "the page showing the map" (meta `_admaps_locations_{map ID}`).
  * Each is keyed by the source settings, so a shortcode pointing the map at a
- * different repeater gets its own copy.
+ * different repeater gets its own copy. Page views only read them, unless a
+ * page has never been built (see get()).
  */
 class Locations {
 
 	const META         = '_admaps_locations';
 	const MAX_VARIANTS = 10;
+	const MAX_PAGES    = 1000;
+	const VERSION      = 'admaps_locations_version';
+	const REFRESH      = 'admaps_locations_refresh';
 
 	/**
 	 * Saves seen this request: arrays of [kind, post ID, post type].
@@ -55,6 +60,31 @@ class Locations {
 		add_action( 'updated_post_meta', array( __CLASS__, 'meta_saved' ), 10, 3 );
 		add_action( 'shutdown', array( __CLASS__, 'rebuild_changed' ) );
 		add_action( Geocoder::HOOK, array( __CLASS__, 'background' ) );
+		add_action( self::REFRESH, array( __CLASS__, 'refresh_all' ) );
+		add_action( 'init', array( __CLASS__, 'maybe_refresh' ) );
+	}
+
+	/**
+	 * After a plugin update, rebuild everything once in the background. Stored
+	 * locations keep being shown until then. Checked on admin and cron requests only.
+	 */
+	public static function maybe_refresh(): void {
+		if ( ( ! is_admin() && ! wp_doing_cron() ) || get_option( self::VERSION ) === ADMAPS_VERSION ) {
+			return;
+		}
+		update_option( self::VERSION, ADMAPS_VERSION, false );
+		if ( ! wp_next_scheduled( self::REFRESH ) ) {
+			wp_schedule_single_event( time(), self::REFRESH );
+		}
+	}
+
+	/**
+	 * Rebuild every map from saved lookups (after a plugin update).
+	 */
+	public static function refresh_all(): void {
+		foreach ( self::dynamic_maps() as $map_id => $source ) {
+			self::refresh( $map_id, $source, Geocoder::CACHED );
+		}
 	}
 
 	/**
@@ -75,7 +105,14 @@ class Locations {
 		if ( isset( $entries[ $hash ]['result'] ) ) {
 			return $entries[ $hash ]['result'];
 		}
-		// Someone is viewing the site: use saved lookups only, and never queue any.
+		// Stored by 0.4.0, whose keys included the version.
+		foreach ( $entries as $entry ) {
+			if ( isset( $entry['source'], $entry['result'] ) && wp_json_encode( $entry['source'] ) === wp_json_encode( $source ) ) {
+				return $entry['result'];
+			}
+		}
+		// Never built (e.g. a shortcode added to a page that hasn't been saved since):
+		// someone is viewing the site, so use saved lookups only, and never queue any.
 		return self::build( $holder, $key, $source, $context, Geocoder::CACHED, false );
 	}
 
@@ -83,15 +120,102 @@ class Locations {
 	 * Rebuild a map from scratch ("Rebuild locations").
 	 *
 	 * @param int $map_id Map ID.
-	 * @return array As Sources::items(), plus `per_page` for maps built on each page.
+	 * @return array `count` of the map's own pins (null for maps built on each page) and `pages` rebuilt.
 	 */
 	public static function rebuild( int $map_id ): array {
-		self::forget( $map_id );
-		$source = Map_Data::get( $map_id )['source'];
-		if ( self::per_page( $source ) ) {
-			return array( 'per_page' => true );
+		return self::refresh( $map_id, Map_Data::get( $map_id )['source'], Geocoder::ADMIN );
+	}
+
+	/**
+	 * Rebuild every stored copy of a map with its current settings: its own, any
+	 * shortcode variants, and each page's. Pages get saved lookups only; anything
+	 * new is looked up in the background.
+	 *
+	 * @param int   $map_id Map ID.
+	 * @param array $source Source settings.
+	 * @param int   $budget Slow lookups allowed for the map's own copy.
+	 * @return array `count` of the map's own pins (null for maps built on each page) and `pages` rebuilt.
+	 */
+	private static function refresh( int $map_id, array $source, int $budget ): array {
+		$out      = array(
+			'count' => null,
+			'pages' => 0,
+		);
+		$variants = self::variants( self::entries( $map_id, self::META ), $source );
+		if ( ! self::per_page( $source ) ) {
+			$variants = array( self::hash( $source ) => $source ) + $variants;
 		}
-		return self::build( $map_id, self::META, $source, 0, Geocoder::ADMIN );
+		$entries = array();
+		foreach ( $variants as $hash => $variant ) {
+			$result = self::build_entry( $variant, 0, $budget, $entries[ $hash ] );
+			if ( $variant === $source ) {
+				$out['count'] = count( $result['markers'] );
+			}
+		}
+		self::store( $map_id, self::META, $entries );
+
+		$key = self::META . '_' . $map_id;
+		foreach ( self::pages( $map_id, $source ) as $page ) {
+			$variants = self::variants( self::entries( $page, $key ), $source );
+			if ( self::per_page( $source ) ) {
+				$variants = array( self::hash( $source ) => $source ) + $variants;
+			}
+			$entries = array();
+			foreach ( $variants as $hash => $variant ) {
+				self::build_entry( $variant, $page, Geocoder::CACHED, $entries[ $hash ] );
+			}
+			self::store( $page, $key, $entries );
+			++$out['pages'];
+		}
+		return $out;
+	}
+
+	/**
+	 * The map's current settings for each stored copy, keeping where each copy reads from
+	 * (a shortcode's source="…").
+	 *
+	 * @param array $entries Stored copies.
+	 * @param array $source  Current source settings.
+	 * @return array Hash => source settings.
+	 */
+	private static function variants( array $entries, array $source ): array {
+		$out = array();
+		foreach ( $entries as $entry ) {
+			if ( ! isset( $entry['source']['location'], $entry['source']['post_id'] ) ) {
+				continue;
+			}
+			$variant             = $source;
+			$variant['location'] = $entry['source']['location'];
+			$variant['post_id']  = $entry['source']['post_id'];
+			$out[ self::hash( $variant ) ] = $variant;
+		}
+		return $out;
+	}
+
+	/**
+	 * Pages holding their own copy of a map: those already built, plus, for maps
+	 * reading the page showing them, published pages with rows in the repeater.
+	 *
+	 * @param int   $map_id Map ID.
+	 * @param array $source Source settings.
+	 * @return int[]
+	 */
+	private static function pages( int $map_id, array $source ): array {
+		global $wpdb;
+		$ids = $wpdb->get_col( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s LIMIT %d", self::META . '_' . $map_id, self::MAX_PAGES ) );
+		if ( self::per_page( $source ) && '' !== $source['field'] ) {
+			$ids = array_merge(
+				$ids,
+				$wpdb->get_col(
+					$wpdb->prepare(
+						"SELECT m.post_id FROM {$wpdb->postmeta} m INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE m.meta_key = %s AND m.meta_value > 0 AND p.post_status = 'publish' LIMIT %d",
+						$source['field'],
+						self::MAX_PAGES
+					)
+				)
+			);
+		}
+		return array_slice( array_unique( array_map( 'intval', $ids ) ), 0, self::MAX_PAGES );
 	}
 
 	/**
@@ -131,13 +255,13 @@ class Locations {
 	}
 
 	/**
-	 * Storage key for a source's settings (and plugin version, as the output can change between versions).
+	 * Storage key for a source's settings. Not tied to the plugin version: updates rebuild in the background instead.
 	 *
 	 * @param array $source Source settings.
 	 * @return string
 	 */
 	private static function hash( array $source ): string {
-		return md5( ADMAPS_VERSION . wp_json_encode( $source ) );
+		return md5( wp_json_encode( $source ) );
 	}
 
 	/**
@@ -164,15 +288,48 @@ class Locations {
 	 * @return array As Sources::items().
 	 */
 	private static function build( int $holder, string $key, array $source, int $context, int $budget, bool $queue = true ): array {
+		$entries = self::entries( $holder, $key );
+		$result  = self::build_entry( $source, $context, $budget, $entries[ self::hash( $source ) ], $queue );
+		self::store( $holder, $key, $entries );
+		return $result;
+	}
+
+	/**
+	 * Build one copy of a source's locations.
+	 *
+	 * @param array      $source  Source settings.
+	 * @param int        $context Post showing the map.
+	 * @param int        $budget  Slow lookups allowed (see Geocoder).
+	 * @param array|null $entry   Set to the stored copy.
+	 * @param bool       $queue   Finish pending lookups in the background.
+	 * @return array As Sources::items().
+	 */
+	private static function build_entry( array $source, int $context, int $budget, &$entry, bool $queue = true ): array {
 		$per_page = self::per_page( $source );
 		$result   = Sources::items( $source, $per_page ? $context : 0, $budget );
-
-		$entries                        = self::entries( $holder, $key );
-		$entries[ self::hash( $source ) ] = array(
+		$entry    = array(
 			'source' => $source,
 			'result' => $result,
 			'built'  => time(),
 		);
+		if ( $queue && $result['pending'] ) {
+			Geocoder::queue( $per_page ? $context : 0 );
+		}
+		return $result;
+	}
+
+	/**
+	 * Save a post's stored copies, keeping the newest few.
+	 *
+	 * @param int    $holder  Post ID.
+	 * @param string $key     Meta key.
+	 * @param array  $entries Hash => {source, result, built}.
+	 */
+	private static function store( int $holder, string $key, array $entries ): void {
+		if ( ! $entries ) {
+			delete_post_meta( $holder, $key );
+			return;
+		}
 		if ( count( $entries ) > self::MAX_VARIANTS ) {
 			uasort(
 				$entries,
@@ -183,11 +340,6 @@ class Locations {
 			$entries = array_slice( $entries, 0, self::MAX_VARIANTS, true );
 		}
 		update_post_meta( $holder, $key, wp_slash( $entries ) );
-
-		if ( $queue && $result['pending'] ) {
-			Geocoder::queue( $per_page ? $context : 0 );
-		}
-		return $result;
 	}
 
 	/**
@@ -228,7 +380,6 @@ class Locations {
 			return;
 		}
 		if ( Post_Type::NAME === $post->post_type ) {
-			self::forget( $post_id );
 			self::$maps_saved[ $post_id ] = true;
 			return;
 		}
@@ -262,7 +413,6 @@ class Locations {
 	 */
 	public static function meta_saved( $meta_id, $object_id, $meta_key ): void {
 		if ( Map_Data::META_KEY === $meta_key ) {
-			self::forget( (int) $object_id );
 			self::$maps_saved[ (int) $object_id ] = true;
 		}
 	}
@@ -281,9 +431,7 @@ class Locations {
 
 		foreach ( self::dynamic_maps() as $map_id => $source ) {
 			if ( isset( $saved[ $map_id ] ) ) {
-				if ( ! self::per_page( $source ) ) {
-					self::build( $map_id, self::META, $source, 0, Geocoder::SAVE );
-				}
+				self::refresh( $map_id, $source, Geocoder::SAVE );
 				continue;
 			}
 			foreach ( self::entries( $map_id, self::META ) as $entry ) {
@@ -295,13 +443,31 @@ class Locations {
 				if ( 'post' !== $change[0] ) {
 					continue;
 				}
-				foreach ( self::entries( $change[1], self::META . '_' . $map_id ) as $entry ) {
-					if ( isset( $entry['source'] ) ) {
-						self::build( $change[1], self::META . '_' . $map_id, $entry['source'], $change[1], Geocoder::SAVE );
-					}
+				$key      = self::META . '_' . $map_id;
+				$variants = self::variants( self::entries( $change[1], $key ), $source );
+				if ( self::per_page( $source ) && '' !== $source['field'] && (int) get_post_meta( $change[1], $source['field'], true ) > 0 ) {
+					$variants = array( self::hash( $source ) => $source ) + $variants;
+				} elseif ( ! $variants && self::shows_current( $change[1], $map_id ) ) {
+					$variant             = $source;
+					$variant['location'] = 'current';
+					$variants            = array( self::hash( $variant ) => $variant );
+				}
+				foreach ( $variants as $variant ) {
+					self::build( $change[1], $key, $variant, $change[1], Geocoder::SAVE );
 				}
 			}
 		}
+	}
+
+	/**
+	 * Does a page's content show a map with source="current"?
+	 *
+	 * @param int $post_id Post ID.
+	 * @param int $map_id  Map ID.
+	 * @return bool
+	 */
+	private static function shows_current( int $post_id, int $map_id ): bool {
+		return (bool) preg_match( '/\[admaps\b(?=[^\]]*\bid=["\']?' . $map_id . '\b)(?=[^\]]*\bsource=["\']?current\b)/i', (string) get_post_field( 'post_content', $post_id ) );
 	}
 
 	/**
