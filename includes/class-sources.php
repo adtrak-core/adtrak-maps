@@ -176,7 +176,7 @@ class Sources {
 	 * @param array $source  Sanitised source settings.
 	 * @param int   $context ID of the post showing the map (for "the page showing the map").
 	 * @param int   $budget  Lookups allowed now (see Geocoder); by default only saved results are used.
-	 * @return array {markers, circles, total, skipped, failed, pending, error}
+	 * @return array {markers, circles, total, skipped, missing, failed, pending, error}
 	 */
 	public static function items( array $source, int $context = 0, int $budget = Geocoder::CACHED ): array {
 		$out = array(
@@ -184,6 +184,7 @@ class Sources {
 			'circles' => array(),
 			'total'   => 0,
 			'skipped' => 0,
+			'missing' => array(),
 			'failed'  => array(),
 			'pending' => 0,
 			'error'   => '',
@@ -240,12 +241,13 @@ class Sources {
 			if ( ! $pos && isset( $requests[ $index ] ) ) {
 				$pos = Geocoder::find( $requests[ $index ] );
 				if ( false === $pos ) {
-					$out['failed'][] = sanitize_text_field( self::name( $fields, $get ) );
+					$out['failed'][] = self::label( $fields, $get, $index );
 				} elseif ( null === $pos ) {
 					++$out['pending'];
 				}
 			} elseif ( ! $pos ) {
 				++$out['skipped'];
+				$out['missing'][] = self::label( $fields, $get, $index );
 			}
 			if ( ! $pos ) {
 				continue;
@@ -459,6 +461,19 @@ class Sources {
 	 *
 	 * @param array    $fields Field mapping.
 	 * @param callable $get    Value getter for the row.
+	 * @return string
+	 */
+	private static function label( array $fields, callable $get, int $index ): string {
+		$name = sanitize_text_field( self::name( $fields, $get ) );
+		/* translators: %d: row number in the repeater */
+		return '' !== $name ? $name : sprintf( __( 'Row %d', 'admaps' ), $index + 1 );
+	}
+
+	/**
+	 * A location's name: the name field, else the post title.
+	 *
+	 * @param array    $fields Field names.
+	 * @param callable $get    Field getter.
 	 * @return string
 	 */
 	private static function name( array $fields, callable $get ): string {

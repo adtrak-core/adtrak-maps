@@ -597,6 +597,25 @@ fieldset.admaps-field label {
 	background: #f6f7f7;
 }
 
+.admaps-source-status p,
+.admaps-source-status ul {
+	margin: 0;
+}
+
+.admaps-source-status p + p,
+.admaps-source-status p + ul {
+	margin-top: 6px;
+}
+
+.admaps-source-status ul {
+	padding-left: 18px;
+	list-style: disc;
+}
+
+.admaps-source-status li {
+	margin: 2px 0;
+}
+
 .admaps-source-status:empty {
 	display: none;
 }
