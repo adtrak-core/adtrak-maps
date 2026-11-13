@@ -48,13 +48,16 @@ class Admin_Source {
 				'fields' => self::acf_fields(),
 				'i18n'   => array(
 					/* translators: %d: number of locations */
-					'showing'  => __( 'Showing %d locations, as they will appear on the map (faded here).', 'admaps' ),
-					/* translators: %d: number of locations */
-					'skipped'  => __( '%d skipped because they have no latitude and longitude, postcode / ZIP code or address.', 'admaps' ),
-					/* translators: %d: number of locations */
-					'noLatLng' => __( '%d skipped because they have no latitude and longitude.', 'admaps' ),
-					/* translators: %s: list of location names */
-					'notFound' => __( 'Couldn\'t find the postcode / ZIP code or address for: %s. Check them, or give these latitude and longitude.', 'admaps' ),
+					'showingAll' => __( 'All %d locations are on the map (shown faded here).', 'admaps' ),
+					/* translators: 1: locations on the map, 2: all locations */
+					'showing'  => __( '%1$d of %2$d locations are on the map (shown faded here).', 'admaps' ),
+					'notPlaced' => __( 'These couldn\'t be placed:', 'admaps' ),
+					/* translators: %s: location names */
+					'notFound' => __( 'Postcode / ZIP code or address not found: %s. Check them, or add latitude and longitude.', 'admaps' ),
+					/* translators: %s: location names */
+					'skipped'  => __( 'No latitude and longitude, postcode / ZIP code or address: %s. Add one of these.', 'admaps' ),
+					/* translators: %s: location names */
+					'noLatLng' => __( 'No latitude and longitude: %s. Add them, or tick "Find the position from the postcode / ZIP code or address".', 'admaps' ),
 					/* translators: %d: number of locations */
 					'pending'  => __( '%d still being looked up…', 'admaps' ),
 					/* translators: %d: number of locations */
@@ -340,7 +343,7 @@ class Admin_Source {
 			</table>
 		</div>
 
-		<p class="admaps-source-status" id="admaps-source-status" role="status" aria-live="polite" data-show="type=repeater|posts"></p>
+		<div class="admaps-source-status" id="admaps-source-status" role="status" aria-live="polite" data-show="type=repeater|posts"></div>
 
 		<?php
 	}

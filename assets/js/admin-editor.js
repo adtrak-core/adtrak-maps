@@ -1298,8 +1298,35 @@
 		} );
 	}
 
-	function sourceStatus( text, kind ) {
-		$( '#admaps-source-status' ).text( text || '' ).attr( 'data-kind', kind || '' );
+	function sourceStatus( text, kind, problems ) {
+		var $status = $( '#admaps-source-status' ).empty().attr( 'data-kind', kind || '' );
+		if ( text ) {
+			$( '<p>' ).text( text ).appendTo( $status );
+		}
+		if ( problems && problems.length ) {
+			$( '<p>' ).text( SRC.i18n.notPlaced ).appendTo( $status );
+			var $list = $( '<ul>' ).appendTo( $status );
+			problems.forEach( function ( problem ) {
+				var parts = problem.reason.split( '%s' );
+				$( '<li>' ).text( parts[ 0 ] )
+					.append( $( '<strong>' ).text( problem.names ) )
+					.append( document.createTextNode( parts.slice( 1 ).join( '%s' ) ) )
+					.appendTo( $list );
+			} );
+		}
+	}
+
+	// One line per reason: up to 10 names, then "and N more".
+	function problemRows( names, count, reason ) {
+		if ( ! count ) {
+			return [];
+		}
+		var shown = names.slice( 0, 10 ).join( ', ' );
+		var rest  = count - Math.min( names.length, 10 );
+		if ( rest > 0 ) {
+			shown = ( shown ? shown + ' ' : '' ) + sprintf( SRC.i18n.more, rest );
+		}
+		return [ { names: shown, reason: reason } ];
 	}
 
 	function drawSourcePreview( result ) {
@@ -1370,19 +1397,17 @@
 				return;
 			}
 
-			var notes  = [];
-			var failed = data.failed || [];
+			var failed   = data.failed || [];
+			var lookups  = $source.find( '[name="admaps_source[geocode]"]:checkbox' ).prop( 'checked' );
+			var problems = problemRows( failed, failed.length, SRC.i18n.notFound )
+				.concat( problemRows( data.missing || [], data.skipped || 0, lookups ? SRC.i18n.skipped : SRC.i18n.noLatLng ) );
+			var count = data.markers.length;
+			var lead  = ! count ? ( data.pending ? '' : SRC.i18n.none )
+				: ( count === data.total ? sprintf( SRC.i18n.showingAll, count ) : sprintf( SRC.i18n.showing, count, data.total ) );
 			if ( data.pending ) {
-				notes.push( sprintf( SRC.i18n.pending, data.pending ) );
+				lead = ( lead + ' ' + sprintf( SRC.i18n.pending, data.pending ) ).trim();
 			}
-			if ( failed.length ) {
-				notes.push( sprintf( SRC.i18n.notFound, failed.slice( 0, 10 ).join( ', ' ) + ( failed.length > 10 ? ' ' + sprintf( SRC.i18n.more, failed.length - 10 ) : '' ) ) );
-			}
-			if ( data.skipped ) {
-				notes.push( sprintf( $source.find( '[name="admaps_source[geocode]"]:checkbox' ).prop( 'checked' ) ? SRC.i18n.skipped : SRC.i18n.noLatLng, data.skipped ) );
-			}
-			var lead = data.markers.length ? sprintf( SRC.i18n.showing, data.markers.length ) : ( data.pending ? '' : SRC.i18n.none );
-			sourceStatus( [ lead ].concat( notes ).join( ' ' ).trim(), ! data.markers.length && ! data.pending ? 'error' : ( notes.length ? 'warning' : 'success' ) );
+			sourceStatus( lead, ! count && ! data.pending ? 'error' : ( problems.length || data.pending ? 'warning' : 'success' ), problems );
 
 			// Keep going while lookups are making progress.
 			if ( data.pending && data.pending !== lastPending ) {
