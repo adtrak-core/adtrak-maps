@@ -28,6 +28,8 @@ if ( is_array( $admaps_settings ) && ! empty( $admaps_settings['delete_on_uninst
 delete_option( 'admaps_geocode' );
 delete_option( 'admaps_geocode_next' );
 wp_unschedule_hook( 'admaps_geocode' );
+wp_unschedule_hook( 'admaps_locations_refresh' );
+delete_option( 'admaps_locations_version' );
 
 // Built locations stored on maps and pages are rebuilt on demand, so they always go too.
 global $wpdb;

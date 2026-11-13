@@ -50,7 +50,9 @@ Under **Fields**, enter the field *names* holding the name, latitude and longitu
 
 The editor previews the locations (faded) and lists any that couldn't be placed.
 
-**How locations are built.** Locations are built when they're saved (the options page, post or page), when the map is saved, and with **Rebuild locations** at the top of the box. The result is stored with the map (or, for *the page showing the map*, with each page), so showing a map only reads stored data: nothing is looked up while visitors browse. If locations change another way, such as an import, a direct database edit or code, press **Rebuild locations**. There is no scheduled rebuild.
+**How locations are built.** Locations are built when they're saved (the options page, post or page), when the map is saved, and with **Rebuild locations** at the top of the box. Saving the map or pressing Rebuild also rebuilds each page's copy for *the page showing the map*. The result is stored with the map (or with each page), so showing a map only reads stored data: nothing is built or looked up while visitors browse. After a plugin update, everything is rebuilt once in the background from saved lookups, and the stored copies are shown until then. If locations change another way, such as an import, a direct database edit or code, press **Rebuild locations**. There is no scheduled rebuild.
+
+The one exception is a page that has never been built, such as a page given a `source="current"` shortcode in a page builder that doesn't save the page itself. Its first view builds and stores it from saved lookups only, without contacting any service.
 
 **Finding positions.** Locations with latitude and longitude are used as they are. With **Find the position from the postcode / ZIP code or address** ticked (the default), the rest are looked up:
 

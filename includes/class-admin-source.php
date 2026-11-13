@@ -68,7 +68,8 @@ class Admin_Source {
 					'building' => __( 'Rebuilding…', 'admaps' ),
 					/* translators: %d: number of locations */
 					'rebuilt'  => __( 'Rebuilt just now: %d locations on the map.', 'admaps' ),
-					'perPage'  => __( 'Cleared. Each page rebuilds its own locations the next time it is shown.', 'admaps' ),
+					/* translators: %d: number of pages */
+					'perPage'  => __( 'Rebuilt just now on %d pages.', 'admaps' ),
 				),
 			)
 		);
@@ -156,7 +157,7 @@ class Admin_Source {
 						<?php
 						$built = Locations::built_at( $post->ID );
 						if ( 'repeater' === $s['type'] && 'current' === $s['location'] ) {
-							esc_html_e( 'Built for each page when it is saved or first shown.', 'admaps' );
+							esc_html_e( 'Built for each page when it or this map is saved.', 'admaps' );
 						} elseif ( $built ) {
 							/* translators: %s: time ago, e.g. "5 mins" */
 							printf( esc_html__( 'Last built %s ago.', 'admaps' ), esc_html( human_time_diff( $built ) ) );
@@ -356,8 +357,9 @@ class Admin_Source {
 		$result = Locations::rebuild( $post_id );
 		wp_send_json_success(
 			array(
-				'per_page' => ! empty( $result['per_page'] ),
-				'count'    => count( $result['markers'] ?? array() ),
+				'per_page' => null === $result['count'],
+				'count'    => (int) $result['count'],
+				'pages'    => $result['pages'],
 			)
 		);
 	}
