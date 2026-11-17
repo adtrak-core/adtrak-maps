@@ -17,6 +17,7 @@ class Sources {
 
 	const TYPES        = array( '', 'repeater', 'posts' );
 	const LOCATIONS    = array( 'options', 'post', 'current' );
+	const SCOPES       = array( 'all', 'current' );
 	const RADIUS_MODES = array( 'none', 'fixed', 'field' );
 	const UNITS        = array(
 		'm'  => 1,
@@ -40,9 +41,10 @@ class Sources {
 			'post_id'        => 0,
 			'field'          => '',
 			'post_type'      => '',
+			'scope'          => 'all',
 			'fields'         => array_fill_keys( self::FIELD_KEYS, '' ),
 			'geocode'        => true,
-			'country'        => 'gb',
+			'country'        => self::site_country(),
 			'template'       => "<strong>{name}</strong>\n{address}\n{postcode}\n{phone}",
 			'icon'           => $items['icon'],
 			'directions'     => (bool) $items['directions'],
@@ -57,6 +59,20 @@ class Sources {
 			'stroke_opacity' => (float) $items['stroke_opacity'],
 			'weight'         => (int) $items['weight'],
 		);
+	}
+
+	/**
+	 * The site's country from its language (en_US is us), for new maps' lookups.
+	 *
+	 * @return string Two-letter code, or '' to search everywhere.
+	 */
+	private static function site_country(): string {
+		$parts = explode( '_', get_locale() );
+		$code  = strtolower( $parts[1] ?? '' );
+		if ( 'uk' === $code ) {
+			$code = 'gb';
+		}
+		return preg_match( '/^[a-z]{2}$/', $code ) ? $code : '';
 	}
 
 	/**
@@ -105,6 +121,7 @@ class Sources {
 		$out['post_id']     = absint( $raw['post_id'] ?? 0 );
 		$out['field']       = self::field_name( $raw['field'] ?? '' );
 		$out['post_type']   = array_key_exists( (string) ( $raw['post_type'] ?? '' ), self::post_types() ) ? (string) $raw['post_type'] : '';
+		$out['scope']       = $pick( $raw['scope'] ?? '', self::SCOPES, 'all' );
 		$out['radius_mode'] = $pick( $raw['radius_mode'] ?? '', self::RADIUS_MODES, 'none' );
 		$out['unit']        = $pick( $raw['unit'] ?? '', array_keys( self::UNITS ), $out['unit'] );
 
@@ -176,7 +193,7 @@ class Sources {
 	 * @param array $source  Sanitised source settings.
 	 * @param int   $context ID of the post showing the map (for "the page showing the map").
 	 * @param int   $budget  Lookups allowed now (see Geocoder); by default only saved results are used.
-	 * @return array {markers, circles, total, skipped, failed, pending, error}
+	 * @return array {markers, circles, total, skipped, missing, failed, pending, error}
 	 */
 	public static function items( array $source, int $context = 0, int $budget = Geocoder::CACHED ): array {
 		$out = array(
@@ -184,6 +201,7 @@ class Sources {
 			'circles' => array(),
 			'total'   => 0,
 			'skipped' => 0,
+			'missing' => array(),
 			'failed'  => array(),
 			'pending' => 0,
 			'error'   => '',
@@ -192,7 +210,7 @@ class Sources {
 			return $out;
 		}
 
-		$rows = 'posts' === $source['type'] ? self::post_rows( $source, $out['error'] ) : self::repeater_rows( $source, $context, $out['error'] );
+		$rows = 'posts' === $source['type'] ? self::post_rows( $source, $context, $out['error'] ) : self::repeater_rows( $source, $context, $out['error'] );
 		if ( '' !== $out['error'] ) {
 			return $out;
 		}
@@ -240,12 +258,13 @@ class Sources {
 			if ( ! $pos && isset( $requests[ $index ] ) ) {
 				$pos = Geocoder::find( $requests[ $index ] );
 				if ( false === $pos ) {
-					$out['failed'][] = sanitize_text_field( self::name( $fields, $get ) );
+					$out['failed'][] = self::label( $fields, $get, $index );
 				} elseif ( null === $pos ) {
 					++$out['pending'];
 				}
 			} elseif ( ! $pos ) {
 				++$out['skipped'];
+				$out['missing'][] = self::label( $fields, $get, $index );
 			}
 			if ( ! $pos ) {
 				continue;
@@ -353,32 +372,37 @@ class Sources {
 	}
 
 	/**
-	 * Published posts of a type, as value getters.
+	 * Published posts of a type, as value getters: all of them, or just the one showing the map.
 	 *
-	 * @param array  $source Source settings.
-	 * @param string $error  Set when no post type is chosen.
+	 * @param array  $source  Source settings.
+	 * @param int    $context Post showing the map.
+	 * @param string $error   Set when no post type is chosen.
 	 * @return callable[]
 	 */
-	private static function post_rows( array $source, string &$error ): array {
+	private static function post_rows( array $source, int $context, string &$error ): array {
 		if ( '' === $source['post_type'] ) {
 			$error = __( 'Choose the post type that holds your locations.', 'admaps' );
 			return array();
 		}
 
-		$ids = get_posts(
-			array(
-				'post_type'        => $source['post_type'],
-				'post_status'      => 'publish',
-				'posts_per_page'   => self::MAX_ROWS,
-				'orderby'          => array(
-					'menu_order' => 'ASC',
-					'title'      => 'ASC',
-				),
-				'fields'           => 'ids',
-				'no_found_rows'    => true,
-				'suppress_filters' => false,
-			)
-		);
+		if ( 'current' === $source['scope'] ) {
+			$ids = $context && get_post_type( $context ) === $source['post_type'] && 'publish' === get_post_status( $context ) ? array( $context ) : array();
+		} else {
+			$ids = get_posts(
+				array(
+					'post_type'        => $source['post_type'],
+					'post_status'      => 'publish',
+					'posts_per_page'   => self::MAX_ROWS,
+					'orderby'          => array(
+						'menu_order' => 'ASC',
+						'title'      => 'ASC',
+					),
+					'fields'           => 'ids',
+					'no_found_rows'    => true,
+					'suppress_filters' => false,
+				)
+			);
+		}
 
 		// Load every post and its fields in two queries, rather than two per post.
 		_prime_post_caches( $ids, false, true );
@@ -392,6 +416,9 @@ class Sources {
 				}
 				if ( '__url' === $name ) {
 					return get_permalink( $id );
+				}
+				if ( '__edit' === $name ) {
+					return get_edit_post_link( $id, 'raw' );
 				}
 				if ( $acf ) {
 					$value = get_field( $name, $id );
@@ -455,10 +482,27 @@ class Sources {
 	}
 
 	/**
-	 * A location's name: its name field, else the post title.
+	 * How the editor names a location it couldn't place, with a link to edit it (posts only).
 	 *
 	 * @param array    $fields Field mapping.
 	 * @param callable $get    Value getter for the row.
+	 * @param int      $index  Row number, from 0.
+	 * @return array {name, edit}
+	 */
+	private static function label( array $fields, callable $get, int $index ): array {
+		$name = sanitize_text_field( self::name( $fields, $get ) );
+		return array(
+			/* translators: %d: row number in the repeater */
+			'name' => '' !== $name ? $name : sprintf( __( 'Row %d', 'admaps' ), $index + 1 ),
+			'edit' => esc_url_raw( (string) $get( '__edit' ) ),
+		);
+	}
+
+	/**
+	 * A location's name: its name field, else the post title.
+	 *
+	 * @param array    $fields Field names.
+	 * @param callable $get    Field getter.
 	 * @return string
 	 */
 	private static function name( array $fields, callable $get ): string {

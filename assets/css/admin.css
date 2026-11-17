@@ -153,7 +153,6 @@
 	height: 100%;
 	min-height: 0;
 	overflow: auto;
-	overscroll-behavior: contain;
 	border-left: 1px solid #dcdcde;
 }
 
@@ -595,6 +594,25 @@ fieldset.admaps-field label {
 	padding: 8px 12px;
 	border-left: 4px solid #72aee6;
 	background: #f6f7f7;
+}
+
+.admaps-source-status p,
+.admaps-source-status ul {
+	margin: 0;
+}
+
+.admaps-source-status p + p,
+.admaps-source-status p + ul {
+	margin-top: 6px;
+}
+
+.admaps-source-status ul {
+	padding-left: 18px;
+	list-style: disc;
+}
+
+.admaps-source-status li {
+	margin: 2px 0;
 }
 
 .admaps-source-status:empty {

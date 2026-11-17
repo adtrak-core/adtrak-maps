@@ -149,9 +149,11 @@ class Admin_Editor {
 					'noItems'         => __( 'Nothing on this map yet. Use the buttons above to add a pin, radius or area.', 'admaps' ),
 					/* translators: %d: number of locations */
 					'dynamicOnly'     => __( 'This map is showing %d dynamic locations, set up in Dynamic locations below, so they aren\'t listed here. To add your own pins, radii or areas as well, use the buttons above.', 'admaps' ),
+					'dynamicOnlyOne'  => __( 'This map is showing 1 dynamic location, set up in Dynamic locations below, so it isn\'t listed here. To add your own pins, radii or areas as well, use the buttons above.', 'admaps' ),
 					'dynamicPage'     => __( 'This map shows dynamic locations from the page it is placed on, set up in Dynamic locations below. To add your own pins, radii or areas as well, use the buttons above.', 'admaps' ),
 					/* translators: %d: number of locations */
 					'dynamicExtra'    => __( 'Plus %d dynamic locations, set up in Dynamic locations below.', 'admaps' ),
+					'dynamicExtraOne' => __( 'Plus 1 dynamic location, set up in Dynamic locations below.', 'admaps' ),
 					'dynamicPageExtra' => __( 'Plus dynamic locations from the page the map is placed on.', 'admaps' ),
 					'deleteConfirm'   => __( 'Delete this item?', 'admaps' ),
 					'chooseImage'     => __( 'Choose pin image', 'admaps' ),

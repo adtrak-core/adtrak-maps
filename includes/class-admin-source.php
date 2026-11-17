@@ -48,13 +48,22 @@ class Admin_Source {
 				'fields' => self::acf_fields(),
 				'i18n'   => array(
 					/* translators: %d: number of locations */
-					'showing'  => __( 'Showing %d locations, as they will appear on the map (faded here).', 'admaps' ),
-					/* translators: %d: number of locations */
-					'skipped'  => __( '%d skipped because they have no latitude and longitude, postcode / ZIP code or address.', 'admaps' ),
-					/* translators: %d: number of locations */
-					'noLatLng' => __( '%d skipped because they have no latitude and longitude.', 'admaps' ),
-					/* translators: %s: list of location names */
-					'notFound' => __( 'Couldn\'t find the postcode / ZIP code or address for: %s. Check them, or give these latitude and longitude.', 'admaps' ),
+					'showingAll' => __( 'All %d locations are on the map (shown faded here).', 'admaps' ),
+					/* translators: 1: locations on the map, 2: all locations */
+					'showing'  => __( '%1$d of %2$d locations are on the map (shown faded here).', 'admaps' ),
+					'notPlaced' => __( 'These couldn\'t be placed:', 'admaps' ),
+					/* translators: %s: location names */
+					'notFound' => __( 'Postcode / ZIP code or address not found: %s. Check them, or add latitude and longitude.', 'admaps' ),
+					/* translators: %s: country code, e.g. GB */
+					'country'  => __( 'Only %s was searched: change "Search in country" if these are elsewhere.', 'admaps' ),
+					'showingOne' => __( 'The location is on the map (shown faded here).', 'admaps' ),
+					/* translators: %s: post title */
+					'sample'   => __( 'Each post shows only its own location. Previewing with "%s".', 'admaps' ),
+					'noSample' => __( 'Each post shows only its own location. There are no published posts to preview with yet.', 'admaps' ),
+					/* translators: %s: location names */
+					'skipped'  => __( 'No latitude and longitude, postcode / ZIP code or address: %s. Add one of these.', 'admaps' ),
+					/* translators: %s: location names */
+					'noLatLng' => __( 'No latitude and longitude: %s. Add them, or tick "Find the position from the postcode / ZIP code or address".', 'admaps' ),
 					/* translators: %d: number of locations */
 					'pending'  => __( '%d still being looked up…', 'admaps' ),
 					/* translators: %d: number of locations */
@@ -156,7 +165,7 @@ class Admin_Source {
 					<span id="admaps-source-built" role="status" aria-live="polite">
 						<?php
 						$built = Locations::built_at( $post->ID );
-						if ( 'repeater' === $s['type'] && 'current' === $s['location'] ) {
+						if ( ( 'repeater' === $s['type'] && 'current' === $s['location'] ) || ( 'posts' === $s['type'] && 'current' === $s['scope'] ) ) {
 							esc_html_e( 'Built for each page when it or this map is saved.', 'admaps' );
 						} elseif ( $built ) {
 							/* translators: %s: time ago, e.g. "5 mins" */
@@ -225,6 +234,24 @@ class Admin_Source {
 					<p class="description"><?php esc_html_e( 'Published posts only, up to 1,000.', 'admaps' ); ?></p>
 				</td>
 			</tr>
+			<tr data-show="type=posts">
+				<th scope="row"><label for="admaps-source-scope"><?php esc_html_e( 'Show', 'admaps' ); ?></label></th>
+				<td>
+					<select id="admaps-source-scope" name="<?php echo esc_attr( $name ); ?>[scope]" data-source-key="scope">
+						<option value="all" <?php selected( $s['scope'], 'all' ); ?>><?php esc_html_e( 'All of them', 'admaps' ); ?></option>
+						<option value="current" <?php selected( $s['scope'], 'current' ); ?>><?php esc_html_e( 'Only the post showing the map', 'admaps' ); ?></option>
+					</select>
+					<p class="description" data-show="type=posts scope=current">
+						<?php
+						printf(
+							/* translators: %s: shortcode */
+							esc_html__( 'For a map on each location\'s own page: put the map in the post type\'s template (or each post), and each one shows only its own location. A shortcode can also choose: %s', 'admaps' ),
+							'<code>' . esc_html( '[admaps id="' . $post->ID . '" source="current"]' ) . '</code>'
+						);
+						?>
+					</p>
+				</td>
+			</tr>
 		</table>
 
 		<div data-show="type=repeater|posts">
@@ -239,7 +266,7 @@ class Admin_Source {
 				$text( 'phone', __( 'Phone', 'admaps' ) );
 				$text( 'address', __( 'Address', 'admaps' ) );
 				$text( 'postcode', __( 'Postcode / ZIP code', 'admaps' ) );
-				$text( 'url', __( 'Link', 'admaps' ), __( 'A page to link to, as {url} in the bubble.', 'admaps' ) );
+				$text( 'url', __( 'Link', 'admaps' ), __( 'A page to link to, as {url} in the bubble. For posts, leave it blank to link to each post\'s own page: no extra field needed.', 'admaps' ) );
 				?>
 				<tr>
 					<th scope="row"><?php esc_html_e( 'No latitude and longitude?', 'admaps' ); ?></th>
@@ -340,7 +367,7 @@ class Admin_Source {
 			</table>
 		</div>
 
-		<p class="admaps-source-status" id="admaps-source-status" role="status" aria-live="polite" data-show="type=repeater|posts"></p>
+		<div class="admaps-source-status" id="admaps-source-status" role="status" aria-live="polite" data-show="type=repeater|posts"></div>
 
 		<?php
 	}
@@ -377,6 +404,32 @@ class Admin_Source {
 		$source = Sources::sanitize( isset( $_POST['admaps_source'] ) && is_array( $_POST['admaps_source'] ) ? wp_unslash( $_POST['admaps_source'] ) : array() ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised by Sources.
 		if ( 'repeater' === $source['type'] && 'current' === $source['location'] ) {
 			wp_send_json_success( array( 'current' => true ) );
+		}
+		if ( 'posts' === $source['type'] && 'current' === $source['scope'] && '' !== $source['post_type'] ) {
+			// Each post shows only itself: preview with the latest one that has a location.
+			$ids    = get_posts(
+				array(
+					'post_type'      => $source['post_type'],
+					'post_status'    => 'publish',
+					'posts_per_page' => 5,
+					'orderby'        => 'modified',
+					'fields'         => 'ids',
+				)
+			);
+			$result = Sources::items( $source, 0 );
+			$sample = 0;
+			foreach ( $ids as $id ) {
+				$try = Sources::items( $source, (int) $id, Geocoder::ADMIN );
+				if ( ! $sample || $try['markers'] ) {
+					$result = $try;
+					$sample = (int) $id;
+				}
+				if ( $try['markers'] ) {
+					break;
+				}
+			}
+			$result['sample'] = $sample ? get_the_title( $sample ) : '';
+			wp_send_json_success( $result );
 		}
 		wp_send_json_success( Sources::items( $source, 0, Geocoder::ADMIN ) );
 	}
