@@ -436,12 +436,15 @@
 		if ( ! type ) {
 			return '';
 		}
-		if ( type === 'repeater' && $( '#admaps-source-location' ).val() === 'current' ) {
+		if ( ( type === 'repeater' && $( '#admaps-source-location' ).val() === 'current' ) || ( type === 'posts' && $( '#admaps-source-scope' ).val() === 'current' ) ) {
 			return hasItems ? i18n.dynamicPageExtra : i18n.dynamicPage;
 		}
 		var count = sourcePreview ? sourcePreview.markers.length : 0;
 		if ( ! count ) {
 			return '';
+		}
+		if ( count === 1 ) {
+			return hasItems ? i18n.dynamicExtraOne : i18n.dynamicOnlyOne;
 		}
 		return sprintf( hasItems ? i18n.dynamicExtra : i18n.dynamicOnly, count );
 	}
@@ -1228,8 +1231,8 @@
 		lat: [ 'lat', 'latitude' ],
 		lng: [ 'lng', 'lon', 'long', 'longitude' ],
 		phone: [ 'phone', 'telephone', 'tel', 'phone_number', 'telephone_number' ],
-		address: [ 'address', 'street_address', 'address_1' ],
-		postcode: [ 'postcode', 'post_code', 'postal_code', 'zip', 'zipcode' ],
+		address: [ 'address', 'street_address', 'address_1', 'address_line_1', 'street' ],
+		postcode: [ 'postcode', 'post_code', 'postal_code', 'postalcode', 'zip', 'zipcode', 'zip_code', 'postcode_zip', 'zip_postcode' ],
 		url: [ 'url', 'link', 'website', 'page' ],
 		radius: [ 'radius', 'coverage_radius', 'coverage', 'miles' ]
 	};
@@ -1238,6 +1241,7 @@
 		return {
 			type: $( '#admaps-source-type' ).val(),
 			location: $( '#admaps-source-location' ).val(),
+			scope: $( '#admaps-source-scope' ).val(),
 			radius: $( '#admaps-source-radius-mode' ).val()
 		};
 	}
@@ -1308,25 +1312,33 @@
 			var $list = $( '<ul>' ).appendTo( $status );
 			problems.forEach( function ( problem ) {
 				var parts = problem.reason.split( '%s' );
-				$( '<li>' ).text( parts[ 0 ] )
-					.append( $( '<strong>' ).text( problem.names ) )
-					.append( document.createTextNode( parts.slice( 1 ).join( '%s' ) ) )
+				var $names = $( '<strong>' );
+				problem.names.forEach( function ( item, i ) {
+					if ( i ) {
+						$names.append( document.createTextNode( ', ' ) );
+					}
+					$names.append( item.edit ? $( '<a target="_blank" rel="noopener">' ).attr( 'href', item.edit ).text( item.name ) : document.createTextNode( item.name ) );
+				} );
+				if ( problem.more ) {
+					$names.append( document.createTextNode( ( problem.names.length ? ' ' : '' ) + problem.more ) );
+				}
+				$( '<li>' ).text( parts[ 0 ] ).append( $names )
+					.append( document.createTextNode( parts.slice( 1 ).join( '%s' ) + ( problem.note ? ' ' + problem.note : '' ) ) )
 					.appendTo( $list );
 			} );
 		}
 	}
 
-	// One line per reason: up to 10 names, then "and N more".
-	function problemRows( names, count, reason ) {
+	// One line per reason: up to 10 names (linked to their edit screens for posts), then "and N more".
+	function problemRows( names, count, reason, note ) {
 		if ( ! count ) {
 			return [];
 		}
-		var shown = names.slice( 0, 10 ).join( ', ' );
-		var rest  = count - Math.min( names.length, 10 );
-		if ( rest > 0 ) {
-			shown = ( shown ? shown + ' ' : '' ) + sprintf( SRC.i18n.more, rest );
-		}
-		return [ { names: shown, reason: reason } ];
+		var shown = names.slice( 0, 10 ).map( function ( item ) {
+			return typeof item === 'string' ? { name: item, edit: '' } : item;
+		} );
+		var rest = count - shown.length;
+		return [ { names: shown, more: rest > 0 ? sprintf( SRC.i18n.more, rest ) : '', reason: reason, note: note || '' } ];
 	}
 
 	function drawSourcePreview( result ) {
@@ -1399,11 +1411,15 @@
 
 			var failed   = data.failed || [];
 			var lookups  = $source.find( '[name="admaps_source[geocode]"]:checkbox' ).prop( 'checked' );
-			var problems = problemRows( failed, failed.length, SRC.i18n.notFound )
+			var country  = $( '#admaps-source-country' ).val().trim();
+			var problems = problemRows( failed, failed.length, SRC.i18n.notFound, country ? sprintf( SRC.i18n.country, country.toUpperCase() ) : '' )
 				.concat( problemRows( data.missing || [], data.skipped || 0, lookups ? SRC.i18n.skipped : SRC.i18n.noLatLng ) );
 			var count = data.markers.length;
-			var lead  = ! count ? ( data.pending ? '' : SRC.i18n.none )
-				: ( count === data.total ? sprintf( SRC.i18n.showingAll, count ) : sprintf( SRC.i18n.showing, count, data.total ) );
+			var lead  = ! count ? ( data.pending || data.total ? '' : SRC.i18n.none )
+				: ( count !== data.total ? sprintf( SRC.i18n.showing, count, data.total ) : ( count === 1 ? SRC.i18n.showingOne : sprintf( SRC.i18n.showingAll, count ) ) );
+			if ( 'sample' in data ) {
+				lead = ( ( data.sample ? sprintf( SRC.i18n.sample, data.sample ) : SRC.i18n.noSample ) + ' ' + ( data.total ? lead : '' ) ).trim();
+			}
 			if ( data.pending ) {
 				lead = ( lead + ' ' + sprintf( SRC.i18n.pending, data.pending ) ).trim();
 			}

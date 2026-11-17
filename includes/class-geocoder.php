@@ -56,6 +56,10 @@ class Geocoder {
 	 */
 	public static function request( string $postcode, string $address, string $country ): ?array {
 		$postcode = trim( $postcode );
+		// ZIP codes kept in number fields lose their leading zeros (02134 becomes 2134).
+		if ( 'us' === $country && preg_match( '/^[0-9]{3,4}$/', $postcode ) ) {
+			$postcode = str_pad( $postcode, 5, '0', STR_PAD_LEFT );
+		}
 		$address  = trim( preg_replace( '/\s*[\r\n]+\s*/', ', ', $address ) );
 		if ( '' === $postcode && '' === $address ) {
 			return null;

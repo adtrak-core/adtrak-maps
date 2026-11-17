@@ -44,11 +44,11 @@ Update checks are off in a git checkout (a folder containing `.git`), so a devel
 The **Dynamic locations** box on a map adds pins (and optionally a coverage radius around each) from existing content, alongside anything drawn on the map:
 
 - **An ACF repeater** on an options page, on a particular page or post, or on *the page showing the map*. The last lets one map be used on many pages (area pages, for example), each showing its own repeater. Repeaters need ACF Pro or Secure Custom Fields.
-- **Posts** of a post type, such as a Locations post type (published only, up to 1,000). These also work with plain custom fields.
+- **Posts** of a post type, such as a Locations post type (published only, up to 1,000). These also work with plain custom fields. Set **Show** to *Only the post showing the map* for a map on each location's own page: put it in the post type's template, and each post shows just its own location, from its own fields (no repeater needed). `source="current"` on the shortcode does the same for one placement.
 
-Under **Fields**, enter the field *names* holding the name, latitude and longitude (or an ACF Google Map field), phone, address, postcode / ZIP code and link. Suggestions come from your ACF field groups, and obvious matches are filled in. The **Info bubble** is a template using `{name}`, `{address}`, `{postcode}` (or `{zip}`), `{phone}`, `{url}` or any other field by its name. Pins can be a coloured pin or an image, and can share one legend row. The radius can be the same for every location or read from a number field.
+Under **Fields**, enter the field *names* holding the name, latitude and longitude (or an ACF Google Map field), phone, address, postcode / ZIP code and link. For posts, leave the name and link blank to use each post's title and its own page. Suggestions come from your ACF field groups, and obvious matches are filled in. The **Info bubble** is a template using `{name}`, `{address}`, `{postcode}` (or `{zip}`), `{phone}`, `{url}` or any other field by its name. Pins can be a coloured pin or an image, and can share one legend row. The radius can be the same for every location or read from a number field.
 
-The editor previews the locations (faded) and lists any that couldn't be placed.
+The editor previews the locations (faded) and lists any that couldn't be placed, grouped by reason, with links to edit each post.
 
 **How locations are built.** Locations are built when they're saved (the options page, post or page), when the map is saved, and with **Rebuild locations** at the top of the box. Saving the map or pressing Rebuild also rebuilds each page's copy for *the page showing the map*. The result is stored with the map (or with each page), so showing a map only reads stored data: nothing is built or looked up while visitors browse. After a plugin update, everything is rebuilt once in the background from saved lookups, and the stored copies are shown until then. If locations change another way, such as an import, a direct database edit or code, press **Rebuild locations**. There is no scheduled rebuild.
 
@@ -59,7 +59,7 @@ The one exception is a page that has never been built, such as a page given a `s
 - UK postcodes with [postcodes.io](https://postcodes.io/), in batches of 100.
 - ZIP codes, other postcodes and addresses with OpenStreetMap's [Nominatim](https://nominatim.org/), at most one a second (its usage policy).
 
-Set **Search in country** to the site's country (`gb`, `us`, `ie`…) so codes aren't matched abroad; leave it blank to search everywhere. Each postcode or address is looked up once and saved, so rebuilding doesn't look it up again. Results are kept for up to 5,000 postcodes and addresses. Saving runs only a few lookups so the save stays quick; the rest finish in the background (WP-Cron) over the next few minutes, and the map updates itself. Ones that aren't found are retried a day later, and if a service is down the plugin waits 10–15 minutes before trying it again.
+**Search in country** keeps codes from being matched abroad. New maps start with the site's country, from its language in **Settings → General** (English (United States) gives `us`); leave it blank to search everywhere. US ZIP codes stored in number fields have their leading zeros put back. Each postcode or address is looked up once and saved, so rebuilding doesn't look it up again. Results are kept for up to 5,000 postcodes and addresses. Saving runs only a few lookups so the save stays quick; the rest finish in the background (WP-Cron) over the next few minutes, and the map updates itself. Ones that aren't found are retried a day later, and if a service is down the plugin waits 10–15 minutes before trying it again.
 
 **Keeping addresses private.** Untick the lookup option and only locations with latitude and longitude are placed: nothing is sent to postcodes.io or Nominatim. Use this when locations are people's home addresses or anything else that shouldn't leave the site.
 
@@ -76,7 +76,7 @@ Set **Search in country** to the site's country (`gb`, `us`, `ie`…) so codes a
 | `height` | Overrides the map's height. `px`, `vh`, `rem`, `em` or `%`. |
 | `zoom` | Fixed zoom level (0–22); turns off *Fit to contents* for this instance. |
 | `class` | Extra CSS classes on the map container. |
-| `source` | For a map whose Dynamic locations come from an ACF repeater: where to read it on this page. `current` (the page showing the map), `options` (the options page) or a page or post ID. |
+| `source` | For a map with Dynamic locations. Repeaters: where to read it on this page, `current` (the page showing the map), `options` (the options page) or a page or post ID. Posts: `current` shows only the post being viewed. |
 
 Draft maps are shown only to people who can edit them. A missing map renders nothing for visitors and shows an error to editors. Maps are lazy-initialised when scrolled near, and resize correctly inside tabs, accordions and popups. On phones and tablets one finger scrolls the page past the map and two fingers move it, with a short hint if someone tries one finger. The mouse wheel only zooms after the map is clicked, unless "Zoom with scroll wheel" is on.
 

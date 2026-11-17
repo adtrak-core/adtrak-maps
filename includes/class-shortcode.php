@@ -64,9 +64,12 @@ class Shortcode {
 			$height = $settings['height'];
 		}
 
-		// source="current", "options" or a post ID: where a repeater source reads from on this page.
+		// source="current", "options" or a post ID: where a repeater source reads from on this page; "current" also limits a posts source to the post being viewed.
 		$where = strtolower( trim( (string) $atts['source'] ) );
-		if ( in_array( $where, array( 'current', 'options' ), true ) ) {
+		if ( 'current' === $where ) {
+			$data['source']['location'] = 'current';
+			$data['source']['scope']    = 'current';
+		} elseif ( 'options' === $where ) {
 			$data['source']['location'] = $where;
 		} elseif ( ctype_digit( $where ) ) {
 			$data['source']['location'] = 'post';

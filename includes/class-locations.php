@@ -105,9 +105,9 @@ class Locations {
 		if ( isset( $entries[ $hash ]['result'] ) ) {
 			return $entries[ $hash ]['result'];
 		}
-		// Stored by 0.4.0, whose keys included the version.
+		// Stored by an older version, under a different key (== ignores key order).
 		foreach ( $entries as $entry ) {
-			if ( isset( $entry['source'], $entry['result'] ) && wp_json_encode( $entry['source'] ) === wp_json_encode( $source ) ) {
+			if ( isset( $entry['source'], $entry['result'] ) && $entry['source'] == $source ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 				return $entry['result'];
 			}
 		}
@@ -187,6 +187,7 @@ class Locations {
 			$variant             = $source;
 			$variant['location'] = $entry['source']['location'];
 			$variant['post_id']  = $entry['source']['post_id'];
+			$variant['scope']    = $entry['source']['scope'] ?? $source['scope'];
 			$out[ self::hash( $variant ) ] = $variant;
 		}
 		return $out;
@@ -194,7 +195,8 @@ class Locations {
 
 	/**
 	 * Pages holding their own copy of a map: those already built, plus, for maps
-	 * reading the page showing them, published pages with rows in the repeater.
+	 * reading the page showing them, published pages with rows in the repeater
+	 * or posts of the type.
 	 *
 	 * @param int   $map_id Map ID.
 	 * @param array $source Source settings.
@@ -203,7 +205,20 @@ class Locations {
 	private static function pages( int $map_id, array $source ): array {
 		global $wpdb;
 		$ids = $wpdb->get_col( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s LIMIT %d", self::META . '_' . $map_id, self::MAX_PAGES ) );
-		if ( self::per_page( $source ) && '' !== $source['field'] ) {
+		if ( self::per_page( $source ) && 'posts' === $source['type'] ) {
+			$ids = array_merge(
+				$ids,
+				get_posts(
+					array(
+						'post_type'      => $source['post_type'],
+						'post_status'    => 'publish',
+						'posts_per_page' => self::MAX_PAGES,
+						'fields'         => 'ids',
+						'no_found_rows'  => true,
+					)
+				)
+			);
+		} elseif ( self::per_page( $source ) && '' !== $source['field'] ) {
 			$ids = array_merge(
 				$ids,
 				$wpdb->get_col(
@@ -251,7 +266,22 @@ class Locations {
 	 * @return bool
 	 */
 	private static function per_page( array $source ): bool {
-		return 'repeater' === $source['type'] && 'current' === $source['location'];
+		return ( 'repeater' === $source['type'] && 'current' === $source['location'] )
+			|| ( 'posts' === $source['type'] && 'current' === $source['scope'] );
+	}
+
+	/**
+	 * Does a post have locations of its own for a map that reads the page showing it?
+	 *
+	 * @param array $source  Source settings.
+	 * @param int   $post_id Post ID.
+	 * @return bool
+	 */
+	private static function has_own( array $source, int $post_id ): bool {
+		if ( 'posts' === $source['type'] ) {
+			return get_post_type( $post_id ) === $source['post_type'] && 'publish' === get_post_status( $post_id );
+		}
+		return '' !== $source['field'] && (int) get_post_meta( $post_id, $source['field'], true ) > 0;
 	}
 
 	/**
@@ -273,7 +303,17 @@ class Locations {
 	 */
 	private static function entries( int $holder, string $key ): array {
 		$stored = get_post_meta( $holder, $key, true );
-		return is_array( $stored ) ? $stored : array();
+		if ( ! is_array( $stored ) ) {
+			return array();
+		}
+		// Settings added since a copy was stored take their defaults.
+		foreach ( $stored as &$entry ) {
+			if ( isset( $entry['source'] ) && is_array( $entry['source'] ) ) {
+				$entry['source'] += Sources::defaults();
+			}
+		}
+		unset( $entry );
+		return $stored;
 	}
 
 	/**
@@ -445,11 +485,12 @@ class Locations {
 				}
 				$key      = self::META . '_' . $map_id;
 				$variants = self::variants( self::entries( $change[1], $key ), $source );
-				if ( self::per_page( $source ) && '' !== $source['field'] && (int) get_post_meta( $change[1], $source['field'], true ) > 0 ) {
+				if ( self::per_page( $source ) && self::has_own( $source, $change[1] ) ) {
 					$variants = array( self::hash( $source ) => $source ) + $variants;
 				} elseif ( ! $variants && self::shows_current( $change[1], $map_id ) ) {
 					$variant             = $source;
 					$variant['location'] = 'current';
+					$variant['scope']    = 'current';
 					$variants            = array( self::hash( $variant ) => $variant );
 				}
 				foreach ( $variants as $variant ) {
